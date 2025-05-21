@@ -26,7 +26,7 @@ const signupUser = async (req : Request, res : Response) => {
 
         const payload = {
             user: {
-                id: newUser._id,
+                _id: newUser._id,
                 role: newUser.role,
                 name: newUser.name,
             },
@@ -62,7 +62,7 @@ const loginUser = async (req : Request, res: Response) => {
         }
         const payload = {
             user: {
-                id: user._id,
+                _id: user._id,
                 role: user.role,
                 name: user.name,
             },
@@ -74,7 +74,6 @@ const loginUser = async (req : Request, res: Response) => {
     } catch (error) {
         console.log(error)
         return res.status(500).json({ message: "Internal server error", success: false });
-        
     }
 };
 

@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema } from "mongoose";
+import Bus from "./bus";
 
 export interface IUser extends Document {
   name: string;
@@ -40,7 +41,7 @@ const UserSchema: Schema<IUser> = new mongoose.Schema(
     addedBus: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "AddedBus",
+        ref: Bus,
       },
     ],
   },
