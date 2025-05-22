@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema } from "mongoose";
+import User from "./user";
 
 // Interface for a booked seat
 interface IBookedSeat {

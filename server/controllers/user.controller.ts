@@ -3,9 +3,18 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/user";
 
-const signupUser = async (req : Request, res : Response) => {
+interface AuthenticatedRequest extends Request {
+    user: {
+        _id: string,
+        role: string,
+        name: string
+    }
+}
+
+
+const signupUser = async (req: Request, res: Response) => {
     const { name, email, password, role } = req.body;
-    
+
     if (!name || !email || !password || !role) {
         return res.status(400).json({ message: "Please fill all the fields", success: false });
     }
@@ -38,14 +47,14 @@ const signupUser = async (req : Request, res : Response) => {
     } catch (error) {
         console.log(error)
         return res.status(500).json({ message: "Internal server error", success: false });
-        
+
     }
 };
 
 
-const loginUser = async (req : Request, res: Response) => {
-    const {email, password, role } = req.body;
-    
+const loginUser = async (req: Request, res: Response) => {
+    const { email, password, role } = req.body;
+
     if (!email || !password || !role) {
         return res.status(400).json({ message: "Please fill all the fields", success: false });
     }
@@ -57,7 +66,7 @@ const loginUser = async (req : Request, res: Response) => {
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
-        if(!isMatch){
+        if (!isMatch) {
             return res.status(400).json({ message: "Invalid Credentials", success: false });
         }
         const payload = {
@@ -77,6 +86,44 @@ const loginUser = async (req : Request, res: Response) => {
     }
 };
 
-export default {signupUser , loginUser}
+
+
+// fetching all the buses booked by a particular user
+const fetchBookedBus = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user._id;
+        if (!userId) {
+            return res.status(400).json({ message: "Please Login to view your booked buses", success: false })
+        }
+        const user = await User.findById(userId)
+            .populate("bookedBus.busId")
+            // .populate("bookedBus.paymentDetails")
+            .select("bookedBus");
+        return res.status(200).json({ message: "Fetched all the booked buses", success: true, user })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({ message: "Internal Server Error", success: false })
+    }
+}
+
+// fetching all the buses added by a particular user
+const fetchAddedBus = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userId = req.user._id;
+        if (!userId) {
+            return res.status(400).json({ message: "Please Login to view your added Buses", success: false })
+        }
+        if (req.user.role !== "admin") {
+            return res.status(400).json({ message: "You are not authorized to view this resource", success: false })
+        }
+        const user = await User.findById(userId).populate("addedBus")
+        return res.status(200).json({ message: "Fetched all the added buses", success: true, user })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({ message: "Internal Server Error", success: false })
+    }
+}
+
+export default { signupUser, loginUser, fetchBookedBus, fetchAddedBus }
 
 

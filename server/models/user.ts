@@ -32,11 +32,19 @@ const UserSchema: Schema<IUser> = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user",
     },
-    bookedBus: [
-      {
+    bookedBus: [{
+      busId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "BookedBus",
+        ref: Bus,
       },
+      seat: {
+        type: Number
+      },
+      paymentDetails: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "payment",
+      },
+    }
     ],
     addedBus: [
       {
