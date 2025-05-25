@@ -6,6 +6,8 @@ import Home from './Pages/Home'
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Buses from './components/Buses'
 import Contact from './components/Contact'
+import Signup from './components/Signup'
+import Login from './components/Login'
 
 function App() {
 
@@ -29,6 +31,8 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/buses" element={<Buses />} />
             <Route path="/contact" element={<Contact />}/>
+            <Route path="/signup" element={<Signup />}/>
+            <Route path="/login" element={<Login />}/>
           </Routes>
         </div>
         <Footer />
