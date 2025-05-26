@@ -10,7 +10,7 @@ const Footer: React.FC = () => {
         <div>
           <div className="flex items-center mb-4 text-white">
             <FaBusAlt className="text-2xl mr-2 text-yellow-400" />
-            <h3 className="text-2xl font-bold">GoBus</h3>
+            <h3 className="text-2xl font-bold">BUzzY</h3>
           </div>
           <p className="text-sm text-gray-400">
             Your trusted platform to book safe and comfortable bus journeys across cities with real-time tracking and seamless payments.

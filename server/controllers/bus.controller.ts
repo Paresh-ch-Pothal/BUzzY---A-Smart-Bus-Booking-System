@@ -21,7 +21,7 @@ const addBus = async (req: AuthenticatedRequest, res: Response) => {
             destination, noOfSleeper, noOfSeater,
             SleeperPrice, SeaterPrice, arrivalTime,
             departureTime } = req.body;
-        if (!name || !busNo || !source || !destination || !noOfSleeper || !noOfSeater || !SleeperPrice || !SeaterPrice || !arrivalTime || !departureTime) {
+        if (!name || !busNo || !source || !destination || !arrivalTime || !departureTime) {
             return res.status(400).json({ message: "Please fill all the fields", success: false })
         }
         console.log(req.user)

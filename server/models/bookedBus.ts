@@ -1,6 +1,5 @@
 import mongoose, { Document, Schema } from "mongoose";
 
-// Interface for BookedBus
 export interface IBookedBus extends Document {
   busId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;

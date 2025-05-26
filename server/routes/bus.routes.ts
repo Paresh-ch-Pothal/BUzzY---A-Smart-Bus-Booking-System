@@ -7,6 +7,6 @@ const router = express.Router();
 
 router.post("/addBus", fetchuser, busController.addBus);
 router.post("/bookBus/:id", fetchuser, busController.bookABus);
-router.get("/searchBus", busController.searchBus);
+router.post("/searchBus", busController.searchBus);
 
 export default router;

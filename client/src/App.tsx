@@ -8,19 +8,15 @@ import Buses from './components/Buses'
 import Contact from './components/Contact'
 import Signup from './components/Signup'
 import Login from './components/Login'
+import { useCookies } from 'react-cookie'
+import AddBus from './components/AddBus'
+import MyBooking from './components/MyBooking'
+import ShowAddedBus from './components/ShowAddedBus'
 
 function App() {
 
-  const [count, setcount] = useState<number>(0)
+  const [userCookie,setUserCookie,removeUserCookie]=useCookies(["role"]);
 
-  const IncrementCount = (val: number): number => {
-    return val + 1
-  }
-
-
-  const handleClick = () => {
-    setcount(IncrementCount(count))
-  }
 
   return (
     <>
@@ -33,6 +29,9 @@ function App() {
             <Route path="/contact" element={<Contact />}/>
             <Route path="/signup" element={<Signup />}/>
             <Route path="/login" element={<Login />}/>
+            <Route path="/mybookings" element={<MyBooking />}/>
+            { userCookie.role === "admin" && (<Route path="/addBus" element={<AddBus />}/>)}
+            { userCookie.role === "admin" && (<Route path="/showAddBus" element={<ShowAddedBus />}/>)}
           </Routes>
         </div>
         <Footer />

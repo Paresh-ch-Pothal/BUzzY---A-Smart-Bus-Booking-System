@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { FaBusAlt } from 'react-icons/fa';
 import { useCookies } from "react-cookie";
@@ -11,6 +11,9 @@ const Navbar: React.FC = () => {
   const toggleMenu = (): void => setMenuOpen(!menuOpen);
 
   const [cookies, setCookie, removeCookie] = useCookies(['authtoken'])
+  const [userCookie, setUserCookie, removeUserCookie] = useCookies(["role"]);
+  const [nameCookie, setNameCookie, removeNameCookie] = useCookies(["name"]);
+  console.log(userCookie.role)
   let token: boolean;
   if (cookies.authtoken) {
     token = true;
@@ -19,9 +22,14 @@ const Navbar: React.FC = () => {
     token = false;
   }
 
-  const handleLogout = () : void => {
-    removeCookie("authtoken", {path: '/'});
+  const navigate = useNavigate();
+
+  const handleLogout = (): void => {
+    removeCookie("authtoken", { path: '/' });
+    removeNameCookie("name", { path: '/' });
+    removeUserCookie("role", { path: '/' });
     window.location.reload();
+    navigate("/")
   }
 
   return (
@@ -32,7 +40,7 @@ const Navbar: React.FC = () => {
         </Link> */}
         <Link to='/' className="flex items-center">
           <FaBusAlt className="text-2xl mr-2 text-red-500" />
-          <h3 className="text-2xl font-bold">GoBus</h3>
+          <h3 className="text-2xl font-bold">BUzzY</h3>
         </Link>
 
         <div className="hidden md:flex space-x-6">
@@ -42,16 +50,23 @@ const Navbar: React.FC = () => {
           <Link to="/buses" className="text-gray-700 hover:text-blue-600 transition font-medium">
             Buses
           </Link>
-          <Link to="/bookings" className="text-gray-700 hover:text-blue-600 transition font-medium">
+          <Link to="/mybookings" className="text-gray-700 hover:text-blue-600 transition font-medium">
             My Bookings
           </Link>
           <Link to="/contact" className="text-gray-700 hover:text-blue-600 transition font-medium">
             Contact
           </Link>
+          {userCookie.role === "admin" && (<Link to="/addBus" className="text-gray-700 hover:text-blue-600 transition font-medium">
+            AddBus
+          </Link>)}
+          {userCookie.role === "admin" && (<Link to="/showAddBus" className="text-gray-700 hover:text-blue-600 transition font-medium">
+            Added Bus
+          </Link>)}
+
         </div>
 
         <div className="hidden md:flex items-center space-x-4">
-          {token ? (<button  onClick={handleLogout}
+          {token ? (<button onClick={handleLogout}
             className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition"
           >
             Logout
@@ -71,27 +86,31 @@ const Navbar: React.FC = () => {
       </div>
 
       {/* Mobile menu */}
-      {/* {menuOpen && (
+      {menuOpen && (
         <div className="md:hidden px-4 pb-4 space-y-2">
           <Link to="/" className="block text-gray-700 hover:text-blue-600 transition">Home</Link>
           <Link to="/buses" className="block text-gray-700 hover:text-blue-600 transition">Buses</Link>
-          <Link to="/bookings" className="block text-gray-700 hover:text-blue-600 transition">My Bookings</Link>
+          <Link to="/mybookings" className="block text-gray-700 hover:text-blue-600 transition">My Bookings</Link>
           <Link to="/contact" className="block text-gray-700 hover:text-blue-600 transition">Contact</Link>
-          {isLoggedIn ? (
-            <button
-              className="w-full text-left text-red-500 hover:text-red-700 mt-2"
-            >
-              Logout
-            </button>
-          ) : (
-            <button
-              className="w-full text-left text-blue-500 hover:text-blue-700 mt-2"
-            >
-              Login
-            </button>
-          )}
+          {userCookie.role === "admin" && (<Link to="/addBus" className="block text-gray-700 hover:text-blue-600 transition">
+            AddBus
+          </Link>)}
+          {userCookie.role === "admin" && (<Link to="/showAddBus" className="block text-gray-700 hover:text-blue-600 transition">
+            Added Bus
+          </Link>)}
+          {token ? (<button onClick={handleLogout}
+            className="w-full text-left text-red-500 hover:text-red-700 mt-2"
+          >
+            Logout
+          </button>) : (<button
+            className="w-full text-left text-blue-500 hover:text-blue-700 mt-2"
+          >
+            Login
+          </button>)}
+
+
         </div>
-      )} */}
+      )}
     </nav>
   );
 };
