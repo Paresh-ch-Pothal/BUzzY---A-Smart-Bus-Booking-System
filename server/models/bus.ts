@@ -20,8 +20,10 @@ export interface IBus extends Document{
     SleeperPrice? : number,
     SeaterPrice? : number,
     addedBy: mongoose.Types.ObjectId,
-    arrivalTime?: Date,
-    departureTime?: Date,
+    arrivalTime?: string,
+    departureTime?: string,
+    arrivalDate?: Date,
+    departureDate?: Date,
     bookedSeats: IBookedSeat[],
     createdAt?: Date,
     updatedAt?: Date,
@@ -82,9 +84,17 @@ const BusSchema: Schema<IBus> = new mongoose.Schema(
       ref: "user",
     },
     arrivalTime: {
-      type: Date,
+      type: String,
+      required: true,
     },
     departureTime: {
+      type: String,
+      required: true
+    },
+    arrivalDate: {
+      type: Date,
+    },
+    departureDate: {
       type: Date,
     },
     bookedSeats: [BookedSeatSchema],

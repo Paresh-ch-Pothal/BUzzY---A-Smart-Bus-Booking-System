@@ -20,7 +20,7 @@ const addBus = async (req: AuthenticatedRequest, res: Response) => {
         const { name, busNo, Ac_NonACtype, source,
             destination, noOfSleeper, noOfSeater,
             SleeperPrice, SeaterPrice, arrivalTime,
-            departureTime } = req.body;
+            departureTime, departureDate, arrivalDate } = req.body;
         if (!name || !busNo || !source || !destination || !arrivalTime || !departureTime) {
             return res.status(400).json({ message: "Please fill all the fields", success: false })
         }
@@ -28,11 +28,12 @@ const addBus = async (req: AuthenticatedRequest, res: Response) => {
         if (req.user.role !== "admin") {
             return res.status(403).json({ message: "You are not authorized to add a bus", success: false })
         }
-        const bus : IBus = await Bus.create({
+        const bus: IBus = await Bus.create({
             name, busNo, Ac_NonACtype, source,
             destination, noOfSleeper, noOfSeater, SleeperPrice,
             SeaterPrice, arrivalTime, departureTime,
-            addedBy: req.user?._id
+            departureDate, arrivalDate,
+            addedBy: req.user?._id,
         })
 
         const adminUser = await User.findById(req.user._id);
@@ -109,9 +110,9 @@ const bookABus = async (req: AuthenticatedRequest, res: Response) => {
         // Check if any of the requested seats are already booked
         const alreadyBooked = seat.filter(s => bookedSeatNumbers.includes(s));
         if (alreadyBooked.length > 0) {
-            return res.status(400).json({ 
-                message: `Seats already booked: ${alreadyBooked.join(", ")}`, 
-                success: false 
+            return res.status(400).json({
+                message: `Seats already booked: ${alreadyBooked.join(", ")}`,
+                success: false
             });
         }
 
@@ -138,10 +139,10 @@ const bookABus = async (req: AuthenticatedRequest, res: Response) => {
 
 
 //search functionality for the bus where the user type source , destination and departure date
-const searchBus = async(req : Request, res: Response) =>{
+const searchBus = async (req: Request, res: Response) => {
     try {
-        const {source , destination , startDate} = req.body;
-        if(!source || !destination || !startDate){
+        const { source, destination, startDate } = req.body;
+        if (!source || !destination || !startDate) {
             return res.status(400).json({ message: "Please fill all the fields", success: false })
         }
 
@@ -149,33 +150,73 @@ const searchBus = async(req : Request, res: Response) =>{
         const querySource = String(source).trim().toLowerCase();
         const queryDestination = String(destination).trim().toLowerCase();
         const queryDate = new Date(String(startDate));
+        const curDate = new Date();
+        if (queryDate > curDate) {
+            const startOfDay = new Date(queryDate);
+            queryDate.setHours(0, 0, 0, 0);
 
-        const startOfDay = new Date(queryDate);
-        queryDate.setHours(0,0,0,0);
+            const endOfDay = new Date(queryDate);
+            endOfDay.setHours(23, 59, 59, 999);
 
-        const endOfDay = new Date(queryDate);
-        endOfDay.setHours(23,59,59,999);
+            const buses = await Bus.find({
+                source: { $regex: new RegExp(`^${querySource}$`, 'i') }, // case-insensitive exact match
+                destination: { $regex: new RegExp(`^${queryDestination}$`, 'i') },
+                departureDate: {
+                    $gte: startOfDay,
+                    $lte: endOfDay
+                }
+            })
 
-        const buses = await Bus.find({
-            source: { $regex: new RegExp(`^${querySource}$`, 'i') }, // case-insensitive exact match
-            destination: { $regex: new RegExp(`^${queryDestination}$`, 'i') },
-            departureTime: {
-                $gte: startOfDay,
-                $lte: endOfDay
+            if (buses.length == 0) {
+                return res.status(404).json({ message: "No buses found", success: false })
             }
-        })
-
-        if(buses.length == 0){
-            return res.status(404).json({ message: "No buses found", success: false })
+            return res.status(200).json({ message: "Buses found", success: true, buses })
         }
-        return res.status(200).json({ message: "Buses found", success: true, buses })
+        else{
+            return res.status(400).json({message: "Bus not available for the selected data",success: false})
+        }
+
+
 
     } catch (error) {
         console.log(error)
-        return res.status(500).json({message: "Internal Server Error", success: false})
+        return res.status(500).json({ message: "Internal Server Error", success: false })
     }
 }
 
 
-export default { addBus , bookABus , searchBus}
+
+// fetching the details of booked seats , remaning seats, no of sleeper and seater seats
+const getBusDetails = async(req: Request,res: Response) => {
+    try {
+        const busId = req.params.id;
+        const bus = await Bus.findById(busId);
+        if (!bus){
+            return res.status(404).json({message: "Bus not Found",success: false})
+        }
+        const bookedSeats = bus.bookedSeats.map((e) => e.seat);
+        const noOfSleeperSeats = bus.noOfSleeper? bus.noOfSleeper : 0;
+        const noOfSeaterSeats = bus.noOfSeater? bus.noOfSeater : 0;
+        const seaterPrice = bus.SeaterPrice ? bus.SeaterPrice : 0;
+        const sleeperPrice = bus.SleeperPrice ? bus.SleeperPrice : 0;
+        const bookedSleeperSeats = bus.bookedSeats.filter((e) => e.seat > noOfSeaterSeats).map((e) => e.seat)
+        const bookedSeaterSeats = bus.bookedSeats.filter((e) => e.seat <= noOfSeaterSeats).map((e) => e.seat)
+
+        return res.status(200).json({
+            message: "Bus Details fetched successfully"
+            ,success: true,
+            noOfSeaterSeats,
+            noOfSleeperSeats,
+            seaterPrice,
+            sleeperPrice,
+            bookedSleeperSeats,bookedSeaterSeats
+        })
+
+    } catch (error) {
+        
+    }
+}
+
+
+export default { addBus, bookABus, searchBus , getBusDetails}
 

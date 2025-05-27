@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { MapPin, Calendar, Clock, Users, Bed, Star, Filter, Search, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { MapPin, Calendar, Clock, Users, Bed, Star, Filter, Search, X, Armchair } from 'lucide-react';
 import axios from 'axios';
 import { Bounce, toast, ToastContainer } from 'react-toastify';
+import { PiSteeringWheelFill } from "react-icons/pi";
+
 
 const demoBuses = [
   {
@@ -58,6 +60,8 @@ interface Bus {
   SeaterPrice: number;
   arrivalTime: string;
   departureTime: string;
+  arrivalDate: string;
+  departureDate: string;
   createdAt: Date;
   totalBookings: number;
   revenue: number;
@@ -80,7 +84,7 @@ const Seat = ({ booked, selected, onClick, index, seatType }) => {
       onClick={!booked ? onClick : undefined}
     >
       {isSeater ? (
-        <Users size={14} />
+        <Armchair size={14} />
       ) : (
         <Bed size={14} />
       )}
@@ -89,7 +93,7 @@ const Seat = ({ booked, selected, onClick, index, seatType }) => {
 };
 
 const Buses = () => {
-  const [openBus, setOpenBus] = useState(null);
+  const [openBus, setOpenBus] = useState(false);
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
 
@@ -101,11 +105,10 @@ const Buses = () => {
   //   );
   // };
 
-  // const getTotalPrice = () => {
-  //   if (!openBus || selectedSeats.length === 0) return 0;
-  //   return selectedSeats.length * parseInt(openBus.price.replace('₹', ''));
-  // };
+  
 
+
+  // for search Fuctionality
   const [buses, setBuses] = useState<Bus[]>([]);
 
   const host = import.meta.env.VITE_API_BASE_URL;
@@ -142,6 +145,95 @@ const Buses = () => {
       });
     }
   }
+
+
+  // for getting booked seats and unbooked seats functionality
+  const [Loading, setLoading] = useState<boolean>(false);
+
+  interface BusDetails {
+    sleeperSeats: number;
+    seaterSeats: number;
+    bookedSleeperSeats: number[];
+    bookedSeaterSeats: number[];
+    sleeperPrice: number;
+    seaterPrice: number;
+  }
+
+  const [getbusdetails, setgetBusDetails] = useState<BusDetails>({
+    sleeperSeats: 0,
+    seaterSeats: 0,
+    bookedSleeperSeats: [],
+    bookedSeaterSeats: [],
+    sleeperPrice: 0,
+    seaterPrice: 0
+  })
+
+
+  const getBusDetails = async (busId: string) => {
+    try {
+      const response = await axios.post(`${host}/api/bus/getStatusForBooked/${busId}`, {
+        headers: {
+          "Content-type": "application/json"
+        }
+      })
+      if (response.data.success) {
+        setgetBusDetails({
+          sleeperSeats: response.data.noOfSleeperSeats,
+          seaterSeats: response.data.noOfSeaterSeats,
+          bookedSleeperSeats: response.data.bookedSleeperSeats,
+          bookedSeaterSeats: response.data.bookedSeaterSeats,
+          sleeperPrice: response.data.sleeperPrice,
+          seaterPrice: response.data.seaterPrice
+        })
+        setOpenBus(true)
+      }
+    } catch (error: any) {
+      console.log(error);
+      const errorMessage = error.response?.data?.message
+      toast.error(errorMessage, {
+        position: "top-center",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: false,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+        transition: Bounce,
+      });
+    }
+  }
+
+
+
+
+  const handleSeatClick = (index: number, type: "seater" | "sleeper") => {
+    if (selectedSeats.includes(index)) {
+      setSelectedSeats(selectedSeats.filter(i => i !== index));
+    } else {
+      setSelectedSeats([...selectedSeats, index]);
+    }
+  };
+
+  console.log(selectedSeats)
+
+  const getTotalPrice = () => {
+    if (selectedSeats.length == 0){
+      return 0
+    }
+    let total_price: number = 0;
+    selectedSeats.map((s) =>{
+      if (s < getbusdetails.seaterSeats){
+        total_price+=getbusdetails.seaterPrice
+      }
+      else{
+        total_price+=getbusdetails.sleeperPrice
+      }
+    })
+    return total_price
+    
+  };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
@@ -280,7 +372,7 @@ const Buses = () => {
               <div
                 key={bus._id}
                 className="bg-white/70 backdrop-blur-lg rounded-2xl shadow-lg border border-white/20 p-6 hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 cursor-pointer group"
-                onClick={() => setOpenBus(bus)}
+
               >
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                   <div className="flex-1">
@@ -301,13 +393,17 @@ const Buses = () => {
                     <div className="flex items-center gap-4 text-sm text-gray-600">
                       <div className="flex items-center gap-1">
                         <Clock size={14} />
-                        <span>
-                          {new Date(bus.departureTime).toISOString().split('T')[0]} | {new Date(bus.departureTime).toTimeString().slice(0, 5)} -------
-                          {new Date(bus.arrivalTime).toISOString().split('T')[0]} | {new Date(bus.arrivalTime).toTimeString().slice(0, 5)}
-                        </span>
+                        <div className="flex flex-col">
+                          <span>
+                            Departure: {new Date(bus.departureDate).toISOString().split('T')[0]} | {bus.departureTime}
+                          </span>
+                          <span>
+                            Arrival: {new Date(bus.arrivalDate).toISOString().split('T')[0]} | {bus.arrivalTime}
+                          </span>
+                        </div>
                       </div>
-
                     </div>
+
                   </div>
 
                   <div className="text-center lg:text-right">
@@ -315,7 +411,7 @@ const Buses = () => {
                       {bus.SeaterPrice == 0 ? bus.SleeperPrice : bus.SleeperPrice == 0 ?
                         bus.SeaterPrice : bus.SeaterPrice | bus.SleeperPrice}
                     </p>
-                    <button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2 mx-auto lg:mx-0">
+                    <button onClick={() => { getBusDetails(bus._id) }} className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-2 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2 mx-auto lg:mx-0">
                       <Users size={16} />
                       View Seats
                     </button>
@@ -330,66 +426,102 @@ const Buses = () => {
         {openBus && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-800 mb-1">Select Seats</h2>
-                    <p className="text-gray-600">{openBus.name} - {openBus.busType}</p>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setOpenBus(null);
-                      setSelectedSeats([]);
-                    }}
-                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                  >
-                    <X size={24} />
-                  </button>
-                </div>
-              </div>
 
               <div className="p-6">
-                <div className="mb-6">
-                  <div className="flex items-center justify-center gap-8 text-sm">
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-white border-2 border-gray-300 rounded flex items-center justify-center">
-                        {openBus.busType.includes('Seater') ? <Users size={10} /> : <Bed size={10} />}
+                <div className="mb-6 space-y-4">
+                  {/* Seater Legend */}
+                  <div>
+                    <h2 className="text-sm font-semibold mb-2 text-center">Seater Legend</h2>
+                    <div className="flex items-center justify-center gap-8 text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 bg-white border-2 border-gray-300 rounded flex items-center justify-center">
+                          <Armchair size={10} />
+                        </div>
+                        <span>Available</span>
                       </div>
-                      <span>Available</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 bg-green-500 border-2 border-green-600 rounded flex items-center justify-center text-white">
+                          <Armchair size={10} />
+                        </div>
+                        <span>Selected</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 bg-red-100 border-2 border-red-300 rounded flex items-center justify-center text-red-600">
+                          <Armchair size={10} />
+                        </div>
+                        <span>Booked</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-green-500 border-2 border-green-600 rounded flex items-center justify-center text-white">
-                        {openBus.busType.includes('Seater') ? <Users size={10} /> : <Bed size={10} />}
+                  </div>
+
+                  {/* Sleeper Legend */}
+                  <div>
+                    <h2 className="text-sm font-semibold mb-2 text-center">Sleeper Legend</h2>
+                    <div className="flex items-center justify-center gap-8 text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 bg-white border-2 border-gray-300 rounded flex items-center justify-center">
+                          <Bed size={10} />
+                        </div>
+                        <span>Available</span>
                       </div>
-                      <span>Selected</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-red-100 border-2 border-red-300 rounded flex items-center justify-center text-red-600">
-                        {openBus.busType.includes('Seater') ? <Users size={10} /> : <Bed size={10} />}
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 bg-green-500 border-2 border-green-600 rounded flex items-center justify-center text-white">
+                          <Bed size={10} />
+                        </div>
+                        <span>Selected</span>
                       </div>
-                      <span>Booked</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-5 h-5 bg-red-100 border-2 border-red-300 rounded flex items-center justify-center text-red-600">
+                          <Bed size={10} />
+                        </div>
+                        <span>Booked</span>
+                      </div>
                     </div>
                   </div>
                 </div>
+
 
                 <div className="bg-gray-50 rounded-xl p-4 mb-6">
                   <div className="text-center mb-4">
                     <div className="bg-gray-800 text-white px-4 py-2 rounded-lg inline-block">
-                      Driver
+                      <PiSteeringWheelFill />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-4 gap-2 max-w-sm mx-auto">
-                    {openBus.seats.map((booked, idx) => (
-                      <Seat
-                        key={idx}
-                        booked={booked}
-                        selected={selectedSeats.includes(idx)}
-                        onClick={() => handleSeatClick(idx)}
-                        index={idx}
-                        busType={openBus.busType}
-                      />
-                    ))}
+                  <div className="max-w-lg mx-auto">
+                    {/* Seater Seats Section */}
+                    <div>
+                      <h2 className="text-sm font-semibold mb-1">Seater</h2>
+                      <div className="grid grid-cols-4 gap-2 mb-4">
+                        {Array.from({ length: getbusdetails.seaterSeats }).map((_, idx) => (
+                          <Seat
+                            key={idx}
+                            booked={getbusdetails.bookedSeaterSeats.includes(idx)}
+                            selected={selectedSeats.includes(idx)}
+                            onClick={() => handleSeatClick(idx, "seater")}
+                            index={idx}
+                            seatType="seater"
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Sleeper Seats Section */}
+                    <div>
+                      <h2 className="text-sm font-semibold mb-1">Sleeper</h2>
+                      <div className="grid grid-cols-2 gap-2">
+                        {Array.from({ length: getbusdetails.sleeperSeats }).map((_, idx) => (
+                          <Seat
+                            key={idx}
+                            booked={getbusdetails.bookedSleeperSeats.includes(idx)}
+                            selected={selectedSeats.includes(getbusdetails.seaterSeats + idx)}
+                            onClick={() => handleSeatClick(getbusdetails.seaterSeats + idx, "sleeper")}
+                            index={getbusdetails.seaterSeats + idx}
+                            seatType="sleeper"
+                          />
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -413,7 +545,7 @@ const Buses = () => {
                 <div className="flex gap-4 justify-end">
                   <button
                     onClick={() => {
-                      setOpenBus(null);
+                      setOpenBus(false);
                       setSelectedSeats([]);
                     }}
                     className="px-6 py-3 bg-gray-200 text-gray-800 rounded-xl font-semibold hover:bg-gray-300 transition-colors"

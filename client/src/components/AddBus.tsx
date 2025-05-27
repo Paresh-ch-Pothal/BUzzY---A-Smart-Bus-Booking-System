@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { BusFront, MapPin, Calendar, IndianRupee, Users, Settings } from "lucide-react";
+import { BusFront, MapPin, Calendar, IndianRupee, Users, Settings, TimerIcon, Clock } from "lucide-react";
 import axios from "axios";
 import { useCookies } from "react-cookie";
 import { Bounce, toast, ToastContainer } from "react-toastify";
@@ -16,6 +16,9 @@ interface AddBusForm {
     SeaterPrice: number;
     arrivalTime: string;
     departureTime: string;
+    departureDate: string;
+    arrivalDate: string
+
 }
 
 const AddBus: React.FC = () => {
@@ -31,6 +34,8 @@ const AddBus: React.FC = () => {
         SeaterPrice: 0,
         arrivalTime: "",
         departureTime: "",
+        departureDate: "",
+        arrivalDate: ""
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,7 +71,9 @@ const AddBus: React.FC = () => {
                 SleeperPrice: bus.SleeperPrice,
                 SeaterPrice: bus.SeaterPrice,
                 arrivalTime: bus.arrivalTime,
-                departureTime: bus.departureTime
+                departureTime: bus.departureTime,
+                departureDate: bus.departureDate,
+                arrivalDate: bus.arrivalDate
 
             }, {
                 headers: {
@@ -243,9 +250,9 @@ const AddBus: React.FC = () => {
                         {/* Schedule */}
                         <InputField
                             label="Departure Date"
-                            name="departureTime"
+                            name="departureDate"
                             type="date"
-                            value={bus.departureTime}
+                            value={bus.departureDate}
                             onChange={handleChange}
                             icon={<Calendar className="w-5 h-5" />}
                             required
@@ -253,11 +260,31 @@ const AddBus: React.FC = () => {
 
                         <InputField
                             label="Arrival Date"
-                            name="arrivalTime"
+                            name="arrivalDate"
                             type="date"
-                            value={bus.arrivalTime}
+                            value={bus.arrivalDate}
                             onChange={handleChange}
                             icon={<Calendar className="w-5 h-5" />}
+                            required
+                        />
+
+                        <InputField
+                            label="Arrival Time"
+                            name="arrivalTime"
+                            type="time"
+                            value={bus.arrivalTime}
+                            onChange={handleChange}
+                            icon={<Clock className="w-5 h-5" />}
+                            required
+                        />
+
+                        <InputField
+                            label="Departure Time"
+                            name="departureTime"
+                            type="time"
+                            value={bus.departureTime}
+                            onChange={handleChange}
+                            icon={<Clock className="w-5 h-5" />}
                             required
                         />
                     </div>
