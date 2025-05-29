@@ -1,6 +1,19 @@
-import mongoose from "mongoose";
+import mongoose, { mongo, Schema } from "mongoose";
+import { Document } from "mongoose";
 
-const paymentSchema = new mongoose.Schema({
+interface payment extends Document{
+  user: mongoose.Types.ObjectId,
+  bus: mongoose.Types.ObjectId,
+  seatsBooked: number[],
+  amount: number,
+  paymentStatus: "pending" | "completed" | "failed";
+  paymentMethod: "card" | "upi" | "wallet" | "netbanking" | "cash";
+  transactionId: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+const paymentSchema: Schema<payment> = new Schema({
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "user",
@@ -37,6 +50,5 @@ const paymentSchema = new mongoose.Schema({
 })
 
 
-
-const Payment = mongoose.model("payment", paymentSchema)
-module.exports = Payment;
+const Payment = mongoose.model<payment>("payment", paymentSchema);
+export default Payment;

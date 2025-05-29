@@ -5,6 +5,16 @@ import fetchuser from '../middleware/fetchuser';
 import Bus, { IBus } from '../models/bus';
 import User, { IUser } from '../models/user';
 import mongoose from 'mongoose';
+import { v4 as uuidv4 } from "uuid";
+import axios from "axios";
+import Payment from '../models/payment'
+
+
+const CASHFREE_APP_ID = process.env.CASHFREE_APP_ID!;
+const CASHFREE_SECRET_KEY = process.env.CASHFREE_SECRET_KEY!;
+const CASHFREE_BASE_URL = "https://sandbox.cashfree.com/pg/orders";
+const HOST = process.env.FRONTEND_HOST;
+
 
 
 interface AuthenticatedRequest extends Request {
@@ -86,12 +96,12 @@ const addBus = async (req: AuthenticatedRequest, res: Response) => {
 
 const bookABus = async (req: AuthenticatedRequest, res: Response) => {
     try {
+        const { amount, seat, paymentMethod } = req.body;
         const userId = req.user._id;
+
         if (!userId) {
             return res.status(400).json({ message: "Please login to book a bus", success: false });
         }
-
-        const { seat } = req.body;
 
         if (!seat || !Array.isArray(seat) || seat.length === 0) {
             return res.status(400).json({ message: "Please select at least one seat", success: false });
@@ -99,15 +109,12 @@ const bookABus = async (req: AuthenticatedRequest, res: Response) => {
 
         const busId = req.params.id;
         const bus = await Bus.findById(busId);
-
         if (!bus) {
             return res.status(404).json({ message: "Bus not found", success: false });
         }
 
-        // Get all already booked seat numbers
+        // Check for already booked seats
         const bookedSeatNumbers = bus.bookedSeats.map((b) => b.seat);
-
-        // Check if any of the requested seats are already booked
         const alreadyBooked = seat.filter(s => bookedSeatNumbers.includes(s));
         if (alreadyBooked.length > 0) {
             return res.status(400).json({
@@ -116,25 +123,70 @@ const bookABus = async (req: AuthenticatedRequest, res: Response) => {
             });
         }
 
-        // Book each seat
+        const transactionId = uuidv4(); // Unique ID for the order
+
+        // Reserve the seats immediately
         seat.forEach(s => {
-            bus.bookedSeats.push({ seat: s, userId });
+            bus.bookedSeats.push({ seat: s, userId }); // You could also include a timestamp if needed
         });
         await bus.save();
 
         const user = await User.findById(userId);
+        const userName = user?.name;
+
         seat.forEach(s => {
             user?.bookedBus.push({ busId, seat: s });
         });
         await user?.save();
 
-        return res.status(200).json({ message: "Bus booked successfully", success: true, bus });
+        // Create Cashfree order
+        const paymentResponse = await axios.post(CASHFREE_BASE_URL, {
+            order_id: transactionId,
+            order_amount: amount,
+            order_currency: "INR",
+            customer_details: {
+                customer_id: userId.toString(),
+                customer_name: userName,
+                customer_email: "test@example.com",
+                customer_phone: "9999999999"
+            },
+            order_meta: {
+                return_url: `${HOST}/success?order_id={order_id}`
+            }
+        }, {
+            headers: {
+                "x-api-version": "2022-09-01",
+                "Content-Type": "application/json",
+                "x-client-id": CASHFREE_APP_ID,
+                "x-client-secret": CASHFREE_SECRET_KEY
+            }
+        });
+
+        const paymentLink = paymentResponse.data.payments?.url;
+
+        // Save pending payment record
+        await Payment.create({
+            user: userId,
+            bus: busId,
+            seatsBooked: seat,
+            amount,
+            paymentStatus: "pending",
+            paymentMethod,
+            transactionId
+        });
+
+        return res.status(200).json({
+            message: "Payment initiated. Redirect user to payment link.",
+            paymentLink,
+            success: true
+        });
 
     } catch (error) {
-        console.error(error);
+        console.error("Booking error:", error);
         return res.status(500).json({ message: "Internal server error", success: false });
     }
 };
+
 
 
 
@@ -172,8 +224,8 @@ const searchBus = async (req: Request, res: Response) => {
             }
             return res.status(200).json({ message: "Buses found", success: true, buses })
         }
-        else{
-            return res.status(400).json({message: "Bus not available for the selected data",success: false})
+        else {
+            return res.status(400).json({ message: "Bus not available for the selected data", success: false })
         }
 
 
@@ -187,16 +239,16 @@ const searchBus = async (req: Request, res: Response) => {
 
 
 // fetching the details of booked seats , remaning seats, no of sleeper and seater seats
-const getBusDetails = async(req: Request,res: Response) => {
+const getBusDetails = async (req: Request, res: Response) => {
     try {
         const busId = req.params.id;
         const bus = await Bus.findById(busId);
-        if (!bus){
-            return res.status(404).json({message: "Bus not Found",success: false})
+        if (!bus) {
+            return res.status(404).json({ message: "Bus not Found", success: false })
         }
         const bookedSeats = bus.bookedSeats.map((e) => e.seat);
-        const noOfSleeperSeats = bus.noOfSleeper? bus.noOfSleeper : 0;
-        const noOfSeaterSeats = bus.noOfSeater? bus.noOfSeater : 0;
+        const noOfSleeperSeats = bus.noOfSleeper ? bus.noOfSleeper : 0;
+        const noOfSeaterSeats = bus.noOfSeater ? bus.noOfSeater : 0;
         const seaterPrice = bus.SeaterPrice ? bus.SeaterPrice : 0;
         const sleeperPrice = bus.SleeperPrice ? bus.SleeperPrice : 0;
         const bookedSleeperSeats = bus.bookedSeats.filter((e) => e.seat > noOfSeaterSeats).map((e) => e.seat)
@@ -204,19 +256,19 @@ const getBusDetails = async(req: Request,res: Response) => {
 
         return res.status(200).json({
             message: "Bus Details fetched successfully"
-            ,success: true,
+            , success: true,
             noOfSeaterSeats,
             noOfSleeperSeats,
             seaterPrice,
             sleeperPrice,
-            bookedSleeperSeats,bookedSeaterSeats
+            bookedSleeperSeats, bookedSeaterSeats
         })
 
     } catch (error) {
-        
+
     }
 }
 
 
-export default { addBus, bookABus, searchBus , getBusDetails}
+export default { addBus, bookABus, searchBus, getBusDetails }
 
