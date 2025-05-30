@@ -8,11 +8,11 @@ import mongoose from 'mongoose';
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 import Payment from '../models/payment'
+import { Cashfree, CFEnvironment } from "cashfree-pg";
 
 
 const CASHFREE_APP_ID = process.env.CASHFREE_APP_ID!;
 const CASHFREE_SECRET_KEY = process.env.CASHFREE_SECRET_KEY!;
-const CASHFREE_BASE_URL = "https://sandbox.cashfree.com/pg/orders";
 const HOST = process.env.FRONTEND_HOST;
 
 
@@ -25,7 +25,7 @@ interface AuthenticatedRequest extends Request {
     }
 }
 
-const addBus = async (req: AuthenticatedRequest, res: Response) => {
+const addBus = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
     try {
         const { name, busNo, Ac_NonACtype, source,
             destination, noOfSleeper, noOfSeater,
@@ -94,147 +94,195 @@ const addBus = async (req: AuthenticatedRequest, res: Response) => {
 //     }
 // }
 
-const bookABus = async (req: AuthenticatedRequest, res: Response) => {
-    try {
-        const { amount, seat, paymentMethod } = req.body;
-        const userId = req.user._id;
+const bookABus = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+  try {
+    const { amount, seat } = req.body;
+    const userId = req.user._id;
 
-        if (!userId) {
-            return res.status(400).json({ message: "Please login to book a bus", success: false });
-        }
-
-        if (!seat || !Array.isArray(seat) || seat.length === 0) {
-            return res.status(400).json({ message: "Please select at least one seat", success: false });
-        }
-
-        const busId = req.params.id;
-        const bus = await Bus.findById(busId);
-        if (!bus) {
-            return res.status(404).json({ message: "Bus not found", success: false });
-        }
-
-        // Check for already booked seats
-        const bookedSeatNumbers = bus.bookedSeats.map((b) => b.seat);
-        const alreadyBooked = seat.filter(s => bookedSeatNumbers.includes(s));
-        if (alreadyBooked.length > 0) {
-            return res.status(400).json({
-                message: `Seats already booked: ${alreadyBooked.join(", ")}`,
-                success: false
-            });
-        }
-
-        const transactionId = uuidv4(); // Unique ID for the order
-
-        // Reserve the seats immediately
-        seat.forEach(s => {
-            bus.bookedSeats.push({ seat: s, userId }); // You could also include a timestamp if needed
-        });
-        await bus.save();
-
-        const user = await User.findById(userId);
-        const userName = user?.name;
-
-        seat.forEach(s => {
-            user?.bookedBus.push({ busId, seat: s });
-        });
-        await user?.save();
-
-        // Create Cashfree order
-        const paymentResponse = await axios.post(CASHFREE_BASE_URL, {
-            order_id: transactionId,
-            order_amount: amount,
-            order_currency: "INR",
-            customer_details: {
-                customer_id: userId.toString(),
-                customer_name: userName,
-                customer_email: "test@example.com",
-                customer_phone: "9999999999"
-            },
-            order_meta: {
-                return_url: `${HOST}/success?order_id={order_id}`
-            }
-        }, {
-            headers: {
-                "x-api-version": "2022-09-01",
-                "Content-Type": "application/json",
-                "x-client-id": CASHFREE_APP_ID,
-                "x-client-secret": CASHFREE_SECRET_KEY
-            }
-        });
-
-        const paymentLink = paymentResponse.data.payments?.url;
-
-        // Save pending payment record
-        await Payment.create({
-            user: userId,
-            bus: busId,
-            seatsBooked: seat,
-            amount,
-            paymentStatus: "pending",
-            paymentMethod,
-            transactionId
-        });
-
-        return res.status(200).json({
-            message: "Payment initiated. Redirect user to payment link.",
-            paymentLink,
-            success: true
-        });
-
-    } catch (error) {
-        console.error("Booking error:", error);
-        return res.status(500).json({ message: "Internal server error", success: false });
+    if (!userId) {
+      return res.status(400).json({ message: "Please login to book a bus", success: false });
     }
+
+    if (!seat || !Array.isArray(seat) || seat.length === 0) {
+      return res.status(400).json({ message: "Please select at least one seat", success: false });
+    }
+
+    const busId = req.params.id;
+    const bus = await Bus.findById(busId);
+    if (!bus) {
+      return res.status(404).json({ message: "Bus not found", success: false });
+    }
+
+    // Check for already booked seats
+    const bookedSeatNumbers = bus.bookedSeats.map(b => b.seat);
+    const alreadyBooked = seat.filter(s => bookedSeatNumbers.includes(s));
+    if (alreadyBooked.length > 0) {
+      return res.status(400).json({
+        message: `Seats already booked: ${alreadyBooked.join(", ")}`,
+        success: false
+      });
+    }
+
+    const transactionId = uuidv4();
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found", success: false });
+    }
+
+    const cashfree = new Cashfree(CFEnvironment.SANDBOX, CASHFREE_APP_ID, CASHFREE_SECRET_KEY);
+
+    const orderRequest = {
+      order_id: transactionId,
+      order_amount: amount,
+      order_currency: "INR",
+      customer_details: {
+        customer_id: userId.toString(),
+        customer_name: user.name,
+        customer_email: user.email || "test@example.com",  // Use real email if available
+        customer_phone: "9999999999"         // Use real phone if available
+      },
+      order_meta: {
+        return_url: `${HOST}/payment/callback?order_id=${transactionId}`,
+        payment_methods: "cc,dc,upi"
+      },
+      order_tags: {
+        name: "Developer",
+        company: "Cashfree"
+      }
+    };
+
+    const response = await cashfree.PGCreateOrder(orderRequest);
+
+    if (!response.data || !response.data.payment_session_id) {
+      return res.status(500).json({ message: "Failed to create payment order", success: false });
+    }
+
+    // Save pending payment record
+    await Payment.create({
+      user: userId,
+      bus: busId,
+      seatsBooked: seat,
+      amount,
+      paymentStatus: "pending",
+      transactionId
+    });
+
+    // Return payment session id or URL for frontend to proceed with payment
+    return res.status(200).json({
+      message: "Payment initiated. Proceed with payment using session id.",
+      paymentSessionId: response.data.payment_session_id,
+      success: true
+    });
+
+  } catch (error: any) {
+    console.error("Booking error:", error);
+    return res.status(500).json({ message: error.message || "Internal server error", success: false });
+  }
 };
 
 
 
 
 //search functionality for the bus where the user type source , destination and departure date
+// const searchBus = async (req: Request, res: Response) => {
+//     try {
+//         const { source, destination, startDate } = req.body;
+//         if (!source || !destination || !startDate) {
+//             return res.status(400).json({ message: "Please fill all the fields", success: false })
+//         }
+
+//         //normalizing the inputs
+//         const querySource = String(source).trim().toLowerCase();
+//         const queryDestination = String(destination).trim().toLowerCase();
+//         const queryDate = new Date(String(startDate));
+//         const curDate = new Date();
+//         if (queryDate >= curDate) {
+//             const startOfDay = new Date(queryDate);
+//             queryDate.setHours(0, 0, 0, 0);
+
+//             const endOfDay = new Date(queryDate);
+//             endOfDay.setHours(23, 59, 59, 999);
+
+//             const buses = await Bus.find({
+//                 source: { $regex: new RegExp(`^${querySource}$`, 'i') }, // case-insensitive exact match
+//                 destination: { $regex: new RegExp(`^${queryDestination}$`, 'i') },
+//                 departureDate: {
+//                     $gte: startOfDay,
+//                     $lte: endOfDay
+//                 }
+//             })
+
+//             if (buses.length == 0) {
+//                 return res.status(404).json({ message: "No buses found", success: false })
+//             }
+//             return res.status(200).json({ message: "Buses found", success: true, buses })
+//         }
+//         else {
+//             return res.status(400).json({ message: "Bus not available for the selected data", success: false })
+//         }
+
+
+
+//     } catch (error) {
+//         console.log(error)
+//         return res.status(500).json({ message: "Internal Server Error", success: false })
+//     }
+// }
+
+
 const searchBus = async (req: Request, res: Response) => {
     try {
         const { source, destination, startDate } = req.body;
+
         if (!source || !destination || !startDate) {
-            return res.status(400).json({ message: "Please fill all the fields", success: false })
+            return res.status(400).json({ message: "Please fill all the fields", success: false });
         }
 
-        //normalizing the inputs
         const querySource = String(source).trim().toLowerCase();
         const queryDestination = String(destination).trim().toLowerCase();
-        const queryDate = new Date(String(startDate));
-        const curDate = new Date();
-        if (queryDate > curDate) {
-            const startOfDay = new Date(queryDate);
-            queryDate.setHours(0, 0, 0, 0);
+        const queryDate = new Date(startDate);
+        const currentDateTime = new Date();
 
-            const endOfDay = new Date(queryDate);
-            endOfDay.setHours(23, 59, 59, 999);
+        const startOfDay = new Date(queryDate);
+        startOfDay.setHours(0, 0, 0, 0);
 
-            const buses = await Bus.find({
-                source: { $regex: new RegExp(`^${querySource}$`, 'i') }, // case-insensitive exact match
-                destination: { $regex: new RegExp(`^${queryDestination}$`, 'i') },
-                departureDate: {
-                    $gte: startOfDay,
-                    $lte: endOfDay
-                }
+        const endOfDay = new Date(queryDate);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const buses = await Bus.find({
+            source: { $regex: new RegExp(`^${querySource}$`, 'i') },
+            destination: { $regex: new RegExp(`^${queryDestination}$`, 'i') },
+            departureDate: { $gte: startOfDay, $lte: endOfDay }
+        });
+
+        const isToday =
+            queryDate.getFullYear() === currentDateTime.getFullYear() &&
+            queryDate.getMonth() === currentDateTime.getMonth() &&
+            queryDate.getDate() === currentDateTime.getDate();
+
+        const filteredBuses = isToday
+            ? buses.filter((bus) => {
+                // Combine departureDate and departureTime string into a Date object
+                const [hours, minutes] = bus.departureTime.split(":").map(Number);
+                const departureDateTime = new Date(bus.departureDate);
+                departureDateTime.setHours(hours, minutes, 0, 0);
+
+                return departureDateTime >= currentDateTime;
             })
+            : buses;
 
-            if (buses.length == 0) {
-                return res.status(404).json({ message: "No buses found", success: false })
-            }
-            return res.status(200).json({ message: "Buses found", success: true, buses })
-        }
-        else {
-            return res.status(400).json({ message: "Bus not available for the selected data", success: false })
+        if (filteredBuses.length === 0) {
+            return res.status(404).json({ message: "No buses found", success: false });
         }
 
-
+        return res.status(200).json({ message: "Buses found", success: true, buses: filteredBuses });
 
     } catch (error) {
-        console.log(error)
-        return res.status(500).json({ message: "Internal Server Error", success: false })
+        console.error(error);
+        return res.status(500).json({ message: "Internal Server Error", success: false });
     }
-}
+};
 
 
 

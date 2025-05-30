@@ -3,6 +3,8 @@ import { MapPin, Calendar, Clock, Users, Bed, Star, Filter, Search, X, Armchair 
 import axios from 'axios';
 import { Bounce, toast, ToastContainer } from 'react-toastify';
 import { PiSteeringWheelFill } from "react-icons/pi";
+import { useCookies } from 'react-cookie';
+import { load } from "@cashfreepayments/cashfree-js";
 
 
 interface Bus {
@@ -63,7 +65,7 @@ const Buses = () => {
   //   );
   // };
 
-  
+
 
 
   // for search Fuctionality
@@ -127,6 +129,7 @@ const Buses = () => {
   })
 
 
+  const [busId, setBusId] = useState<string>("")
   const getBusDetails = async (busId: string) => {
     try {
       const response = await axios.post(`${host}/api/bus/getStatusForBooked/${busId}`, {
@@ -134,6 +137,7 @@ const Buses = () => {
           "Content-type": "application/json"
         }
       })
+      console.log(response)
       if (response.data.success) {
         setgetBusDetails({
           sleeperSeats: response.data.noOfSleeperSeats,
@@ -143,6 +147,7 @@ const Buses = () => {
           sleeperPrice: response.data.sleeperPrice,
           seaterPrice: response.data.seaterPrice
         })
+        setBusId(busId)
         setOpenBus(true)
       }
     } catch (error: any) {
@@ -175,22 +180,91 @@ const Buses = () => {
 
   console.log(selectedSeats)
 
-  const getTotalPrice = () => {
-    if (selectedSeats.length == 0){
-      return 0
-    }
-    let total_price: number = 0;
-    selectedSeats.map((s) =>{
-      if (s < getbusdetails.seaterSeats){
-        total_price+=getbusdetails.seaterPrice
-      }
-      else{
-        total_price+=getbusdetails.sleeperPrice
-      }
-    })
-    return total_price
-    
+  const [amount, setAmount] = useState<number>(0);
+
+  // const getTotalPrice = () => {
+  //   if (selectedSeats.length == 0){
+  //     return 0
+  //   }
+  //   let total_price: number = 0;
+  //   selectedSeats.map((s) =>{
+  //     if (s < getbusdetails.seaterSeats){
+  //       total_price+=getbusdetails.seaterPrice
+  //     }
+  //     else{
+  //       total_price+=getbusdetails.sleeperPrice
+  //     }
+  //   })
+  //   setAmount(total_price)
+  //   return total_price
+
+  // };
+
+
+  useEffect(() => {
+    const total = selectedSeats.reduce((total, seatIndex) => {
+      return total + (seatIndex < getbusdetails.seaterSeats
+        ? getbusdetails.seaterPrice
+        : getbusdetails.sleeperPrice);
+    }, 0);
+    setAmount(total);
+  }, [selectedSeats, getbusdetails]);
+
+
+  // make a function for booking a seat
+
+  let cashfree: any;
+  var initializeSDK = async function () {
+    cashfree = await load({
+      mode: "sandbox"
+    });
+  }
+  initializeSDK();
+
+  const doPayment = async (sessionId: string) => {
+    let checkoutOptions = {
+      paymentSessionId: sessionId,
+      redirectTarget: "_self",
+    };
+    cashfree.checkout(checkoutOptions);
   };
+
+  const [authCookie, setAuthCookie, removeAuthCookie] = useCookies(["authtoken"])
+
+  const token = authCookie.authtoken
+
+  const handleBookSeat = async (seats: number[], amount: number, busId: string) => {
+    if (!token) {
+      toast.error("Please Login", {
+        position: "top-center",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: false,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+        transition: Bounce,
+      });
+    }
+    else {
+      try {
+        const response = await axios.post(`${host}/api/bus/bookBus/${busId}`, {
+          seat: seats,
+          amount: amount
+        }, {
+          headers: {
+            "authtoken": token
+          }
+        })
+        if (response.data.success) {
+          doPayment(response.data.paymentSessionId);
+        }
+      } catch (error) {
+        console.log(error)
+      }
+    }
+  }
 
 
   return (
@@ -494,7 +568,7 @@ const Buses = () => {
                     <div className="flex items-center justify-between">
                       <span className="font-semibold text-gray-800">Total Amount:</span>
                       <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                        ₹{getTotalPrice()}
+                        ₹{amount}
                       </span>
                     </div>
                   </div>
@@ -511,10 +585,11 @@ const Buses = () => {
                     Cancel
                   </button>
                   <button
+                    onClick={() => { handleBookSeat(selectedSeats, amount, busId) }}
                     disabled={selectedSeats.length === 0}
                     className="px-8 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                   >
-                    Book Now (₹{getTotalPrice()})
+                    Book Now ₹ {amount}
                   </button>
                 </div>
               </div>

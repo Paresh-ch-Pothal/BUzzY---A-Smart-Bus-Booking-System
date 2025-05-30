@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { 
-  BusFront, 
-  MapPin, 
-  Calendar, 
-  Clock, 
-  Users, 
-  IndianRupee, 
-  Ticket, 
-  CheckCircle, 
-  XCircle, 
+import {
+  BusFront,
+  MapPin,
+  Calendar,
+  Clock,
+  Users,
+  IndianRupee,
+  Ticket,
+  CheckCircle,
+  XCircle,
   AlertCircle,
   Search,
   Filter,
-  Download
+  Download,
+  Divide
 } from "lucide-react";
+import { useCookies } from "react-cookie";
 
 interface Booking {
   id: string;
@@ -41,6 +43,11 @@ const MyBooking: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [isLoading, setIsLoading] = useState(true);
+
+
+  const [authCookie, setAuthCookie, removeAuthCookie] = useCookies(["authtoken"])
+
+  const token = authCookie.authtoken
 
   // Mock data - replace with actual API call
   useEffect(() => {
@@ -135,7 +142,7 @@ const MyBooking: React.FC = () => {
     let filtered = bookings;
 
     if (searchTerm) {
-      filtered = filtered.filter(booking => 
+      filtered = filtered.filter(booking =>
         booking.busName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         booking.source.toLowerCase().includes(searchTerm.toLowerCase()) ||
         booking.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -241,7 +248,7 @@ const MyBooking: React.FC = () => {
             <Ticket className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-600 mb-2">No Bookings Found</h3>
             <p className="text-gray-500">
-              {searchTerm || statusFilter !== "All" 
+              {searchTerm || statusFilter !== "All"
                 ? "Try adjusting your search or filter criteria"
                 : "You haven't made any bookings yet"
               }

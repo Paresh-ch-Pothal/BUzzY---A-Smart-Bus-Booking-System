@@ -97,8 +97,7 @@ const fetchBookedBus = async (req: AuthenticatedRequest, res: Response) => {
         }
         const user = await User.findById(userId)
             .populate("bookedBus.busId")
-            // .populate("bookedBus.paymentDetails")
-            .select("bookedBus");
+            .populate("bookedBus.paymentDetails");
         return res.status(200).json({ message: "Fetched all the booked buses", success: true, user })
     } catch (error) {
         console.log(error)

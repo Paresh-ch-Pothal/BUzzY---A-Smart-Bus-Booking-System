@@ -1,5 +1,6 @@
 import mongoose, { Document, Schema } from "mongoose";
 import Bus from "./bus";
+import Payment from "./payment";
 
 export interface IUser extends Document {
   name: string;
@@ -35,7 +36,7 @@ const UserSchema: Schema<IUser> = new mongoose.Schema(
     bookedBus: [{
       busId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: Bus,
+        ref: "bus",
       },
       seat: {
         type: Number

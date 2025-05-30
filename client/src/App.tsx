@@ -12,6 +12,7 @@ import { useCookies } from 'react-cookie'
 import AddBus from './components/AddBus'
 import MyBooking from './components/MyBooking'
 import ShowAddedBus from './components/ShowAddedBus'
+import PaymentCallback from './components/PaymentCallback'
 
 function App() {
 
@@ -32,6 +33,7 @@ function App() {
             <Route path="/mybookings" element={<MyBooking />}/>
             { userCookie.role === "admin" && (<Route path="/addBus" element={<AddBus />}/>)}
             { userCookie.role === "admin" && (<Route path="/showAddBus" element={<ShowAddedBus />}/>)}
+            <Route path="/payment/callback" element={<PaymentCallback />} />
           </Routes>
         </div>
         <Footer />

@@ -40,7 +40,6 @@ const paymentSchema: Schema<payment> = new Schema({
     paymentMethod: {
       type: String,
       enum: ["card", "upi", "wallet", "netbanking", "cash"],
-      required: true,
     },
     transactionId: {
       type: String,

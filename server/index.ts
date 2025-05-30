@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import connectDB from "./connectDb";
 import userRoutes from './routes/user.routes';
 import busRoutes from './routes/bus.routes'
+import paymentRoutes from './routes/payment.routes'
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ connectDB();
 // all routes
 app.use("/api/user",userRoutes)
 app.use("/api/bus",busRoutes)
+app.use('/api/payment',paymentRoutes)
 
 // Define your routes here
 // For example: app.use('/api/users', userRoutes);
