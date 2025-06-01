@@ -4,7 +4,6 @@ import {
   MapPin,
   Calendar,
   Clock,
-  Users,
   IndianRupee,
   Ticket,
   CheckCircle,
@@ -13,33 +12,14 @@ import {
   Search,
   Filter,
   Download,
-  Divide
 } from "lucide-react";
 import { useCookies } from "react-cookie";
+import axios from "axios";
 
-interface Booking {
-  id: string;
-  bookingDate: string;
-  busName: string;
-  busNumber: string;
-  busType: "AC" | "NON_AC";
-  source: string;
-  destination: string;
-  departureDate: string;
-  departureTime: string;
-  arrivalDate: string;
-  arrivalTime: string;
-  seatNumbers: string[];
-  seatType: "Sleeper" | "Seater";
-  totalPrice: number;
-  passengerCount: number;
-  status: "Confirmed" | "Cancelled" | "Pending";
-  pnr: string;
-}
 
 const MyBooking: React.FC = () => {
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
+  const [bookings, setBookings] = useState([]);
+  // const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [isLoading, setIsLoading] = useState(true);
@@ -49,121 +29,58 @@ const MyBooking: React.FC = () => {
 
   const token = authCookie.authtoken
 
+  const host = import.meta.env.VITE_API_BASE_URL;
+
+  const getBookings = async () => {
+    try {
+      const response = await axios.get(`${host}/api/user/showBookings`, {
+        headers: {
+          authtoken: token,
+        },
+      });
+      if (response.data.success) {
+        setBookings(response.data.user.bookedBus);
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
   // Mock data - replace with actual API call
   useEffect(() => {
-    const mockBookings: Booking[] = [
-      {
-        id: "1",
-        bookingDate: "2024-01-15",
-        busName: "Volvo Express",
-        busNumber: "TN-45-AB-1234",
-        busType: "AC",
-        source: "Chennai",
-        destination: "Bangalore",
-        departureDate: "2024-02-01",
-        departureTime: "22:00",
-        arrivalDate: "2024-02-02",
-        arrivalTime: "06:00",
-        seatNumbers: ["A1", "A2"],
-        seatType: "Sleeper",
-        totalPrice: 2400,
-        passengerCount: 2,
-        status: "Confirmed",
-        pnr: "PNR123456"
-      },
-      {
-        id: "2",
-        bookingDate: "2024-01-20",
-        busName: "Royal Cruiser",
-        busNumber: "KA-03-CD-5678",
-        busType: "NON_AC",
-        source: "Mumbai",
-        destination: "Pune",
-        departureDate: "2024-01-25",
-        departureTime: "14:30",
-        arrivalDate: "2024-01-25",
-        arrivalTime: "18:00",
-        seatNumbers: ["B5"],
-        seatType: "Seater",
-        totalPrice: 450,
-        passengerCount: 1,
-        status: "Confirmed",
-        pnr: "PNR789012"
-      },
-      {
-        id: "3",
-        bookingDate: "2024-01-10",
-        busName: "Metro Link",
-        busNumber: "DL-01-EF-9012",
-        busType: "AC",
-        source: "Delhi",
-        destination: "Jaipur",
-        departureDate: "2024-01-12",
-        departureTime: "08:00",
-        arrivalDate: "2024-01-12",
-        arrivalTime: "13:30",
-        seatNumbers: ["C3", "C4", "C5"],
-        seatType: "Seater",
-        totalPrice: 1800,
-        passengerCount: 3,
-        status: "Cancelled",
-        pnr: "PNR345678"
-      },
-      {
-        id: "4",
-        bookingDate: "2024-01-22",
-        busName: "Highway King",
-        busNumber: "RJ-14-GH-3456",
-        busType: "AC",
-        source: "Jaipur",
-        destination: "Udaipur",
-        departureDate: "2024-02-05",
-        departureTime: "16:00",
-        arrivalDate: "2024-02-05",
-        arrivalTime: "22:30",
-        seatNumbers: ["D1"],
-        seatType: "Sleeper",
-        totalPrice: 950,
-        passengerCount: 1,
-        status: "Pending",
-        pnr: "PNR901234"
-      }
-    ];
-
-    setTimeout(() => {
-      setBookings(mockBookings);
-      setFilteredBookings(mockBookings);
-      setIsLoading(false);
-    }, 1000);
-  }, []);
+    getBookings()
+  }, [token]);
 
   // Filter bookings based on search and status
-  useEffect(() => {
-    let filtered = bookings;
+  // useEffect(() => {
+  //   let filtered = bookings;
 
-    if (searchTerm) {
-      filtered = filtered.filter(booking =>
-        booking.busName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        booking.source.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        booking.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        booking.pnr.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+  //   if (searchTerm) {
+  //     filtered = filtered.filter(booking =>
+  //       booking.busName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //       booking.source.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //       booking.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //       booking.pnr.toLowerCase().includes(searchTerm.toLowerCase())
+  //     );
+  //   }
 
-    if (statusFilter !== "All") {
-      filtered = filtered.filter(booking => booking.status === statusFilter);
-    }
+  //   if (statusFilter !== "All") {
+  //     filtered = filtered.filter(booking => booking.status === statusFilter);
+  //   }
 
-    setFilteredBookings(filtered);
-  }, [searchTerm, statusFilter, bookings]);
+  //   setFilteredBookings(filtered);
+  // }, [searchTerm, statusFilter, bookings]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "Confirmed":
+      case "completed":
         return <CheckCircle className="w-5 h-5 text-green-500" />;
-      case "Cancelled":
+      case "cancelled":
         return <XCircle className="w-5 h-5 text-red-500" />;
-      case "Pending":
+      case "pending":
         return <AlertCircle className="w-5 h-5 text-yellow-500" />;
       default:
         return <AlertCircle className="w-5 h-5 text-gray-500" />;
@@ -243,7 +160,7 @@ const MyBooking: React.FC = () => {
         </div>
 
         {/* Bookings Grid */}
-        {filteredBookings.length === 0 ? (
+        {bookings.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-lg p-12 text-center border border-gray-100">
             <Ticket className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-600 mb-2">No Bookings Found</h3>
@@ -256,9 +173,9 @@ const MyBooking: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {filteredBookings.map((booking) => (
+            {bookings.map((booking) => (
               <div
-                key={booking.id}
+                key={booking._id}
                 className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden"
               >
                 {/* Header */}
@@ -267,13 +184,14 @@ const MyBooking: React.FC = () => {
                     <div>
                       <h3 className="text-xl font-bold flex items-center gap-2">
                         <BusFront className="w-6 h-6" />
-                        {booking.busName}
+                        {booking.busId.name}
                       </h3>
-                      <p className="text-indigo-100 text-sm">{booking.busNumber}</p>
+                      <p className="text-indigo-100 text-sm">{booking.busId.busNo}</p>
                     </div>
-                    <div className={`px-3 py-1 rounded-full border text-sm font-medium flex items-center gap-2 ${getStatusColor(booking.status)} bg-white bg-opacity-20 backdrop-blur-sm`}>
-                      {getStatusIcon(booking.status)}
-                      {booking.status}
+                    <div className={`px-3 py-1 rounded-full border text-sm font-medium flex items-center gap-2 ${getStatusColor(booking.paymentDetails.paymentStatus
+                    )} bg-white bg-opacity-20 backdrop-blur-sm`}>
+                      {getStatusIcon(booking.paymentDetails.paymentStatus)}
+                      {booking.paymentDetails.paymentStatus}
                     </div>
                   </div>
 
@@ -281,11 +199,11 @@ const MyBooking: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <MapPin className="w-4 h-4" />
-                      <span className="font-medium">{booking.source}</span>
+                      <span className="font-medium">{booking.busId.source}</span>
                     </div>
                     <div className="flex-1 mx-4 border-t border-indigo-300"></div>
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">{booking.destination}</span>
+                      <span className="font-medium">{booking.busId.destination}</span>
                       <MapPin className="w-4 h-4" />
                     </div>
                   </div>
@@ -301,10 +219,10 @@ const MyBooking: React.FC = () => {
                         <span className="text-sm font-medium">Departure</span>
                       </div>
                       <div className="text-gray-800">
-                        <div className="font-bold">{new Date(booking.departureDate).toLocaleDateString()}</div>
+                        <div className="font-bold">{new Date(booking.busId.departureDate).toLocaleDateString()}</div>
                         <div className="text-sm flex items-center gap-1">
                           <Clock className="w-3 h-3" />
-                          {booking.departureTime}
+                          {booking.busId.departureTime}
                         </div>
                       </div>
                     </div>
@@ -315,10 +233,10 @@ const MyBooking: React.FC = () => {
                         <span className="text-sm font-medium">Arrival</span>
                       </div>
                       <div className="text-gray-800">
-                        <div className="font-bold">{new Date(booking.arrivalDate).toLocaleDateString()}</div>
+                        <div className="font-bold">{new Date(booking.busId.arrivalDate).toLocaleDateString()}</div>
                         <div className="text-sm flex items-center gap-1">
                           <Clock className="w-3 h-3" />
-                          {booking.arrivalTime}
+                          {booking.busId.arrivalTime}
                         </div>
                       </div>
                     </div>
@@ -327,37 +245,39 @@ const MyBooking: React.FC = () => {
                   {/* Booking Info */}
                   <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
                     <div className="space-y-3">
-                      <div className="flex items-center gap-2">
+                      {/* <div className="flex items-center gap-2">
                         <Users className="w-4 h-4 text-gray-500" />
                         <span className="text-sm text-gray-600">Passengers:</span>
                         <span className="font-medium">{booking.passengerCount}</span>
-                      </div>
+                      </div> */}
                       <div className="flex items-center gap-2">
                         <Ticket className="w-4 h-4 text-gray-500" />
                         <span className="text-sm text-gray-600">Seats:</span>
-                        <span className="font-medium">{booking.seatNumbers.join(", ")}</span>
+                        <span className="font-medium">
+                          {booking.paymentDetails.seatsBooked.map(seat => seat + 1).join(", ")}
+                        </span>
                       </div>
                     </div>
 
                     <div className="space-y-3">
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-gray-600">Type:</span>
-                        <span className="font-medium">{booking.seatType} | {booking.busType}</span>
+                        <span className="font-medium">{booking.busId.Ac_NonACtype}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <IndianRupee className="w-4 h-4 text-gray-500" />
                         <span className="text-sm text-gray-600">Total:</span>
-                        <span className="font-bold text-lg text-indigo-600">₹{booking.totalPrice}</span>
+                        <span className="font-bold text-lg text-indigo-600">₹{booking.paymentDetails.amount}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* PNR and Actions */}
                   <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-                    <div>
+                    {/* <div>
                       <span className="text-xs text-gray-500">PNR Number</span>
                       <div className="font-mono font-bold text-gray-800">{booking.pnr}</div>
-                    </div>
+                    </div> */}
                     <button className="flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg transition-colors duration-200">
                       <Download className="w-4 h-4" />
                       <span className="text-sm font-medium">Download</span>

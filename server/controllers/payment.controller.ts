@@ -21,9 +21,17 @@ const verifyPayment = async (req: Request, res: Response): Promise<Response> => 
     }
 
     try {
-        const response = await cashfree.PGOrderFetchPayments(orderId);
+        const payment = await Payment.findOne({ transactionId: orderId });
+        if (!payment) {
+            return res.status(404).json({ success: false, message: "Payment not found" });
+        }
 
-        // Assuming response.data is an array and first element contains payment info
+        // Already verified
+        if (payment.paymentStatus === "completed") {
+            return res.status(200).json({ success: true, message: "Payment already verified" });
+        }
+
+        const response = await cashfree.PGOrderFetchPayments(orderId);
         const paymentInfo = response.data?.[0];
         if (!paymentInfo) {
             return res.status(404).json({ success: false, message: "Payment info not found" });
@@ -32,8 +40,6 @@ const verifyPayment = async (req: Request, res: Response): Promise<Response> => 
         if (paymentInfo.payment_status !== "SUCCESS") {
             return res.json({ success: false, message: "Payment not successful" });
         }
-
-        const payment = await Payment.findOne({ transactionId: orderId });
         const paymentId = payment?._id
         if (!payment) {
             return res.status(404).json({ success: false, message: "Payment record not found" });
@@ -41,7 +47,7 @@ const verifyPayment = async (req: Request, res: Response): Promise<Response> => 
 
         const userId = payment.user;
         const busId = payment.bus;
-        const seats = payment.seatsBooked as number[]; // Assuming seatsBooked is an array of numbers
+        const seats = payment.seatsBooked as number[];
 
         if (!userId || !busId || !seats || seats.length === 0) {
             return res.status(400).json({ success: false, message: "Invalid payment data" });
@@ -60,10 +66,12 @@ const verifyPayment = async (req: Request, res: Response): Promise<Response> => 
             user.bookedBus.push({ busId, seat, paymentDetails: paymentId });
         }
 
-        await Promise.all([bus.save(), user.save()]);
+        await bus.save()
+        await user.save()
+
+        // await Promise.all([bus.save(), user.save()]);
 
         const paymethod: any = paymentInfo.payment_group
-
         payment.paymentMethod = paymethod;
         payment.paymentStatus = "completed";
         await payment.save();

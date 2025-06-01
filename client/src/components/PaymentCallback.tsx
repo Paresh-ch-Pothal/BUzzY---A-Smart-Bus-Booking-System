@@ -8,41 +8,35 @@ import { useCookies } from 'react-cookie';
 const PaymentCallback = () => {
     // Simulate your existing logic structure
     const [status, setStatus] = useState('Verifying payment...');
-    
+
     // Your existing variables would go here
     const [searchParams] = useSearchParams();
     const orderId = searchParams.get('order_id');
     const host = import.meta.env.VITE_API_BASE_URL;
     const [authCookie, setAuthCookie, removeAuthCookie] = useCookies(["authtoken"])
     const token = authCookie.authtoken
-    
+
     // Simulate order ID for demo
 
     // Your exact useEffect logic would remain here
     useEffect(() => {
-        // Simulate the verification process for demo
-        // const timer = setTimeout(() => {
-        //     const outcomes = [
-        //         'Payment successful! Thank you.',
-        //         'Payment failed or not verified.',
-        //         'Error verifying payment.'
-        //     ];
-        //     setStatus(outcomes[Math.floor(Math.random() * outcomes.length)]);
-        // }, 3000);
-
-        // return () => clearTimeout(timer);
-
-        // Your actual verification logic:
         const verifyPayment = async () => {
+            // Don't verify if already verified
+            const alreadyVerified = sessionStorage.getItem(`verified_${orderId}`);
+            if (alreadyVerified) return;
+
             try {
-                const { data } = await axios.post(`${host}/api/payment/verify`, { orderId },{
+                const { data } = await axios.post(`${host}/api/payment/verify`, { orderId }, {
                     headers: {
-                        "authtoken" : token
+                        "authtoken": token
                     }
                 });
 
                 if (data.success) {
                     setStatus('Payment successful! Thank you.');
+
+                    // Store this orderId as verified
+                    sessionStorage.setItem(`verified_${orderId}`, "true");
                 } else {
                     setStatus('Payment failed or not verified.');
                 }
@@ -52,10 +46,11 @@ const PaymentCallback = () => {
             }
         };
 
-        if (orderId) {
+        if (orderId && token) {
             verifyPayment();
         }
-    }, []);
+    }, [orderId, token]);
+
 
     const getStatusIcon = () => {
         if (status === 'Verifying payment...') {
@@ -94,7 +89,7 @@ const PaymentCallback = () => {
                 <div className="bg-white rounded-2xl shadow-2xl p-8 text-center relative overflow-hidden">
                     {/* Decorative Background Pattern */}
                     <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500"></div>
-                    
+
                     {/* Header Icon */}
                     <div className="mb-6">
                         <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-4">
@@ -118,13 +113,13 @@ const PaymentCallback = () => {
                         <h3 className={`text-xl font-semibold ${getStatusColor()} mb-2`}>
                             {status}
                         </h3>
-                        
+
                         {status === 'Verifying payment...' && (
                             <p className="text-gray-600 text-sm">
                                 Please wait while we confirm your payment details...
                             </p>
                         )}
-                        
+
                         {status === 'Payment successful! Thank you.' && (
                             <div className="space-y-2">
                                 <p className="text-gray-600 text-sm">
@@ -137,7 +132,7 @@ const PaymentCallback = () => {
                                 </div>
                             </div>
                         )}
-                        
+
                         {status !== 'Verifying payment...' && status !== 'Payment successful! Thank you.' && (
                             <div className="space-y-2">
                                 <p className="text-gray-600 text-sm">
@@ -156,7 +151,7 @@ const PaymentCallback = () => {
                     {status === 'Verifying payment...' && (
                         <div className="mb-6">
                             <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div className="bg-blue-500 h-2 rounded-full animate-pulse" style={{width: '70%'}}></div>
+                                <div className="bg-blue-500 h-2 rounded-full animate-pulse" style={{ width: '70%' }}></div>
                             </div>
                         </div>
                     )}
@@ -168,7 +163,7 @@ const PaymentCallback = () => {
                                 Go To User DashBoard
                             </button>
                         )}
-                        
+
                         {status !== 'Verifying payment...' && status !== 'Payment successful! Thank you.' && (
                             <div className="space-y-2">
                                 <button className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 shadow-lg hover:shadow-xl">
