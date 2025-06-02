@@ -171,6 +171,7 @@ const Buses = () => {
 
 
   const handleSeatClick = (index: number, type: "seater" | "sleeper") => {
+    console.log(index)
     if (selectedSeats.includes(index)) {
       setSelectedSeats(selectedSeats.filter(i => i !== index));
     } else {
@@ -181,24 +182,6 @@ const Buses = () => {
   console.log(selectedSeats)
 
   const [amount, setAmount] = useState<number>(0);
-
-  // const getTotalPrice = () => {
-  //   if (selectedSeats.length == 0){
-  //     return 0
-  //   }
-  //   let total_price: number = 0;
-  //   selectedSeats.map((s) =>{
-  //     if (s < getbusdetails.seaterSeats){
-  //       total_price+=getbusdetails.seaterPrice
-  //     }
-  //     else{
-  //       total_price+=getbusdetails.sleeperPrice
-  //     }
-  //   })
-  //   setAmount(total_price)
-  //   return total_price
-
-  // };
 
 
   useEffect(() => {
@@ -525,16 +508,19 @@ const Buses = () => {
                     <div>
                       <h2 className="text-sm font-semibold mb-1">Seater</h2>
                       <div className="grid grid-cols-4 gap-2 mb-4">
-                        {Array.from({ length: getbusdetails.seaterSeats }).map((_, idx) => (
-                          <Seat
-                            key={idx}
-                            booked={getbusdetails.bookedSeaterSeats.includes(idx)}
-                            selected={selectedSeats.includes(idx)}
-                            onClick={() => handleSeatClick(idx, "seater")}
-                            index={idx}
-                            seatType="seater"
-                          />
-                        ))}
+                        {Array.from({ length: getbusdetails.seaterSeats }).map((_, idx) => {
+                          const seatIndex = idx + 1;
+                          return (
+                            <Seat
+                              key={seatIndex}
+                              booked={getbusdetails.bookedSeaterSeats.includes(seatIndex)}
+                              selected={selectedSeats.includes(seatIndex)}
+                              onClick={() => handleSeatClick(seatIndex, "seater")}
+                              index={seatIndex}
+                              seatType="seater"
+                            />
+                          );
+                        })}
                       </div>
                     </div>
 
@@ -542,16 +528,19 @@ const Buses = () => {
                     <div>
                       <h2 className="text-sm font-semibold mb-1">Sleeper</h2>
                       <div className="grid grid-cols-2 gap-2">
-                        {Array.from({ length: getbusdetails.sleeperSeats }).map((_, idx) => (
-                          <Seat
-                            key={idx}
-                            booked={getbusdetails.bookedSleeperSeats.includes(idx)}
-                            selected={selectedSeats.includes(getbusdetails.seaterSeats + idx)}
-                            onClick={() => handleSeatClick(getbusdetails.seaterSeats + idx, "sleeper")}
-                            index={getbusdetails.seaterSeats + idx}
-                            seatType="sleeper"
-                          />
-                        ))}
+                        {Array.from({ length: getbusdetails.sleeperSeats }).map((_, idx) => {
+                          const seatIndex = getbusdetails.seaterSeats + idx + 1;
+                          return (
+                            <Seat
+                              key={seatIndex}
+                              booked={getbusdetails.bookedSleeperSeats.includes(seatIndex)}
+                              selected={selectedSeats.includes(seatIndex)}
+                              onClick={() => handleSeatClick(seatIndex, "sleeper")}
+                              index={seatIndex}
+                              seatType="sleeper"
+                            />
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
@@ -562,7 +551,7 @@ const Buses = () => {
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-semibold text-gray-800">Selected Seats:</span>
                       <span className="text-purple-600 font-bold">
-                        {selectedSeats.map(s => s + 1).join(', ')}
+                        {selectedSeats.map(s => s).join(', ')}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -587,7 +576,7 @@ const Buses = () => {
                   <button
                     onClick={() => { handleBookSeat(selectedSeats, amount, busId) }}
                     disabled={selectedSeats.length === 0}
-                    className="px-8 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                    className="cursor-pointer px-8 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                   >
                     Book Now ₹ {amount}
                   </button>

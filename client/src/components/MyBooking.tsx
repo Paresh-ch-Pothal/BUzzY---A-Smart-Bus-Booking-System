@@ -12,6 +12,8 @@ import {
   Search,
   Filter,
   Download,
+  Users,
+  BadgeIndianRupee,
 } from "lucide-react";
 import { useCookies } from "react-cookie";
 import axios from "axios";
@@ -245,16 +247,16 @@ const MyBooking: React.FC = () => {
                   {/* Booking Info */}
                   <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
                     <div className="space-y-3">
-                      {/* <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4 text-gray-500" />
-                        <span className="text-sm text-gray-600">Passengers:</span>
-                        <span className="font-medium">{booking.passengerCount}</span>
-                      </div> */}
+                      <div className="flex items-center gap-2">
+                        <BadgeIndianRupee size={34} className=" text-gray-500" />
+                        <span className="text-sm text-gray-600">Transaction Id:</span>
+                        <span className="font-small">{booking.paymentDetails.transactionId}</span>
+                      </div>
                       <div className="flex items-center gap-2">
                         <Ticket className="w-4 h-4 text-gray-500" />
                         <span className="text-sm text-gray-600">Seats:</span>
                         <span className="font-medium">
-                          {booking.paymentDetails.seatsBooked.map(seat => seat + 1).join(", ")}
+                          {booking.paymentDetails.seatsBooked.map(seat => seat).join(", ")}
                         </span>
                       </div>
                     </div>
