@@ -6,11 +6,10 @@ import { useCookies } from "react-cookie";
 
 const Navbar: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false); // Simulated auth state
 
   const toggleMenu = (): void => setMenuOpen(!menuOpen);
 
-  const [cookies, setCookie, removeCookie] = useCookies(['authtoken'])
+  const [cookies, setcookie, removeCookie] = useCookies(['authtoken'])
   const [userCookie, setUserCookie, removeUserCookie] = useCookies(["role"]);
   const [nameCookie, setNameCookie, removeNameCookie] = useCookies(["name"]);
   console.log(userCookie.role)

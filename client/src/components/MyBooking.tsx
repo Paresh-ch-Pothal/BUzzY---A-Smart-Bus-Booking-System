@@ -12,11 +12,30 @@ import {
   Search,
   Filter,
   Download,
-  Users,
   BadgeIndianRupee,
 } from "lucide-react";
 import { useCookies } from "react-cookie";
 import axios from "axios";
+
+
+// interface BusDetails{
+//   id: string,
+//   name: string,
+//   busNo: string,
+//   paymentStatus: string,
+//   source: string,
+//   destination: string,
+//   departureDate: Date,
+//   departureTime: string,
+//   arrivalDate: Date,
+//   arrivalTime: string,
+//   transactionId: string,
+//   seat: number,
+//   type: string,
+//   NoSeater: number,
+//   sleeperPrice: number,
+//   seaterPrice: number
+// }
 
 
 const MyBooking: React.FC = () => {
@@ -26,7 +45,7 @@ const MyBooking: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [isLoading, setIsLoading] = useState(true);
 
-  const [authCookie, setAuthCookie, removeAuthCookie] = useCookies(["authtoken"])
+  const [authCookie] = useCookies(["authtoken"])
 
   const token = authCookie.authtoken
 
@@ -176,7 +195,7 @@ const MyBooking: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {bookings.map((booking) => (
+            {bookings.map((booking: any) => (
               <div
                 key={booking._id}
                 className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden"

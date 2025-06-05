@@ -3,7 +3,6 @@ import {
     BusFront,
     MapPin,
     Calendar,
-    Clock,
     Users,
     IndianRupee,
     Settings,
@@ -12,9 +11,6 @@ import {
     AlertCircle,
     Search,
     Filter,
-    Edit,
-    Trash2,
-    Eye,
     Plus,
     Wind,
     Snowflake
@@ -45,7 +41,7 @@ const ShowAddedBus: React.FC = () => {
     const [buses, setBuses] = useState<Bus[]>([]);
     const [totalSeat,setTotalseat] = useState<number>(0);
     const [totalAmount,setTotalAmount] = useState<number>(0);
-    const [filteredBuses, setFilteredBuses] = useState<Bus[]>([]);
+    // const [filteredBuses, setFilteredBuses] = useState<Bus[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState<string>("All");
     const [typeFilter, setTypeFilter] = useState<string>("All");
@@ -53,7 +49,7 @@ const ShowAddedBus: React.FC = () => {
 
     // Mock data - replace with actual API call
     const host = import.meta.env.VITE_API_BASE_URL;
-    const [authCookie, setAuthCookie, removeAuthCookie] = useCookies(["authtoken"])
+    const [authCookie] = useCookies(["authtoken"])
     const token = authCookie.authtoken
 
     const getBuses = async () => {
@@ -116,18 +112,18 @@ const ShowAddedBus: React.FC = () => {
         }
     }
 
-    const getTotalAmount = async() =>{
-        try {
-            const response = await axios.get(`${host}/api/user/showAddedBus`, {
-                headers: {
-                    "Content-Type": "application/json",
-                    "authtoken": token
-                }
-            })
-        } catch (error) {
+    // const getTotalAmount = async() =>{
+    //     try {
+    //         const response = await axios.get(`${host}/api/user/showAddedBus`, {
+    //             headers: {
+    //                 "Content-Type": "application/json",
+    //                 "authtoken": token
+    //             }
+    //         })
+    //     } catch (error) {
             
-        }
-    }
+    //     }
+    // }
 
 
     useEffect(() => {
@@ -185,26 +181,26 @@ const ShowAddedBus: React.FC = () => {
         }
     };
 
-    const getOccupancyColor = (rate: number) => {
-        if (rate >= 80) return "text-green-600 bg-green-100";
-        if (rate >= 60) return "text-yellow-600 bg-yellow-100";
-        return "text-red-600 bg-red-100";
-    };
+    // const getOccupancyColor = (rate: number) => {
+    //     if (rate >= 80) return "text-green-600 bg-green-100";
+    //     if (rate >= 60) return "text-yellow-600 bg-yellow-100";
+    //     return "text-red-600 bg-red-100";
+    // };
 
-    const handleEdit = (busId: string) => {
-        console.log("Edit bus:", busId);
-        // Add edit functionality
-    };
+    // const handleEdit = (busId: string) => {
+    //     console.log("Edit bus:", busId);
+    //     // Add edit functionality
+    // };
 
-    const handleDelete = (busId: string) => {
-        console.log("Delete bus:", busId);
-        // Add delete functionality
-    };
+    // const handleDelete = (busId: string) => {
+    //     console.log("Delete bus:", busId);
+    //     // Add delete functionality
+    // };
 
-    const handleView = (busId: string) => {
-        console.log("View bus details:", busId);
-        // Add view functionality
-    };
+    // const handleView = (busId: string) => {
+    //     console.log("View bus details:", busId);
+    //     // Add view functionality
+    // };
 
     if (isLoading) {
         return (

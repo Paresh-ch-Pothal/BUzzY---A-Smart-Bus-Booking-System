@@ -30,31 +30,35 @@ interface Bus {
 
 
 
-const Seat = ({ booked, selected, onClick, index, seatType }) => {
-  const isSeater = seatType === 'seater';
+interface SeatProps {
+  booked: any;
+  selected: any;
+  onClick: any;
+  index: any;
+  seatType: any;
+}
+
+const Seat: React.FC<SeatProps> = ({ booked, selected, onClick, index, seatType }) => {
+  const isSeater = seatType === "seater";
 
   return (
     <div
       className={`w-10 h-8 m-1 rounded-lg border-2 cursor-pointer transition-all duration-200 flex items-center justify-center text-xs font-semibold hover:scale-110 ${booked
-        ? 'bg-red-100 border-red-300 text-red-600 cursor-not-allowed'
-        : selected
-          ? 'bg-green-500 border-green-600 text-white shadow-lg'
-          : 'bg-white border-gray-300 text-gray-600 hover:border-purple-400 hover:bg-purple-50'
+          ? "bg-red-100 border-red-300 text-red-600 cursor-not-allowed"
+          : selected
+            ? "bg-green-500 border-green-600 text-white shadow-lg"
+            : "bg-white border-gray-300 text-gray-600 hover:border-purple-400 hover:bg-purple-50"
         }`}
       onClick={!booked ? onClick : undefined}
     >
-      {isSeater ? (
-        <Armchair size={14} />
-      ) : (
-        <Bed size={14} />
-      )}
+      {isSeater ? <Armchair size={14} /> : <Bed size={14} />}
     </div>
   );
 };
 
 const Buses = () => {
   const [openBus, setOpenBus] = useState(false);
-  const [selectedSeats, setSelectedSeats] = useState([]);
+  const [selectedSeats, setSelectedSeats] = useState<any>([]);
   const [showFilters, setShowFilters] = useState(false);
 
   // const handleSeatClick = (seatIndex) => {
@@ -170,10 +174,10 @@ const Buses = () => {
 
 
 
-  const handleSeatClick = (index: number, type: "seater" | "sleeper") => {
+  const handleSeatClick = (index: any, type: "seater" | "sleeper") => {
     console.log(index)
     if (selectedSeats.includes(index)) {
-      setSelectedSeats(selectedSeats.filter(i => i !== index));
+      setSelectedSeats(selectedSeats.filter((i: any) => i !== index));
     } else {
       setSelectedSeats([...selectedSeats, index]);
     }
@@ -185,7 +189,7 @@ const Buses = () => {
 
 
   useEffect(() => {
-    const total = selectedSeats.reduce((total, seatIndex) => {
+    const total = selectedSeats.reduce((total: number, seatIndex: number) => {
       return total + (seatIndex < getbusdetails.seaterSeats
         ? getbusdetails.seaterPrice
         : getbusdetails.sleeperPrice);
@@ -551,7 +555,7 @@ const Buses = () => {
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-semibold text-gray-800">Selected Seats:</span>
                       <span className="text-purple-600 font-bold">
-                        {selectedSeats.map(s => s).join(', ')}
+                        {selectedSeats.map((s: any) => s).join(', ')}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
