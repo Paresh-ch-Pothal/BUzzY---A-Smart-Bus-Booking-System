@@ -1,18 +1,25 @@
 import mongoose, { Document, Schema } from "mongoose";
-import Bus from "./bus";
-import Payment from "./payment";
 
+// 1. Define a type for bookedBus entries
+interface BookedBus {
+  busId: mongoose.Types.ObjectId;
+  seat: number;
+  paymentDetails: mongoose.Types.ObjectId;
+}
+
+// 2. Update IUser interface to reflect correct type
 export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
   role: "user" | "admin";
-  bookedBus: mongoose.Types.ObjectId[];
+  bookedBus: BookedBus[]; // changed from ObjectId[]
   addedBus: mongoose.Types.ObjectId[];
   createdAt?: Date;
   updatedAt?: Date;
 }
 
+// 3. Mongoose schema
 const UserSchema: Schema<IUser> = new mongoose.Schema(
   {
     name: {
@@ -33,24 +40,25 @@ const UserSchema: Schema<IUser> = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user",
     },
-    bookedBus: [{
-      busId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "bus",
+    bookedBus: [
+      {
+        busId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "bus",
+        },
+        seat: {
+          type: Number,
+        },
+        paymentDetails: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "payment",
+        },
       },
-      seat: {
-        type: Number
-      },
-      paymentDetails: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "payment",
-      },
-    }
     ],
     addedBus: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: Bus,
+        ref: "bus",
       },
     ],
   },
@@ -59,5 +67,6 @@ const UserSchema: Schema<IUser> = new mongoose.Schema(
   }
 );
 
+// 4. Export model
 const User = mongoose.model<IUser>("user", UserSchema);
 export default User;

@@ -32,7 +32,7 @@ const verifyPayment = async (req: Request, res: Response): Promise<Response> => 
         }
 
         const userId = payment.user;
-        const busId = payment.bus;
+        const busId: any = payment.bus;
         const seats = payment.seatsBooked as number[];
 
         const bus = await Bus.findById(busId);
@@ -43,23 +43,25 @@ const verifyPayment = async (req: Request, res: Response): Promise<Response> => 
 
         // Check if these seats have already been booked for this payment
         const alreadyBookedInBus = bus.bookedSeats.some(
-            s => s.paymentDetails?.toString() === payment._id.toString()
+            s => s.paymentDetails?.toString() === payment._id?.toString()
         );
 
         const alreadyBookedInUser = user.bookedBus.some(
-            s => s.paymentDetails?.toString() === payment._id.toString()
+            s => s.paymentDetails?.toString() === payment._id?.toString()
         );
 
         if (!alreadyBookedInBus) {
             for (const seat of seats) {
-                bus.bookedSeats.push({ seat, userId, paymentDetails: payment._id });
+                const paymentDetails: any = payment._id
+                bus.bookedSeats.push({ seat, userId, paymentDetails });
             }
             await bus.save();
         }
 
         if (!alreadyBookedInUser) {
             for (const seat of seats) {
-                user.bookedBus.push({ busId, seat, paymentDetails: payment._id });
+                const paymentDetails: any = payment._id
+                user.bookedBus.push({ busId, seat, paymentDetails });
             }
             await user.save();
         }
