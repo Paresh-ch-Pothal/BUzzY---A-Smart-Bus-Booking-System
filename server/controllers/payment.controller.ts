@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import Payment from "../models/payment";
+import Payment, { PaymentMethod, PaymentStatus } from "../models/payment";
 import Bus from "../models/bus";
 import User from "../models/user";
 import { Cashfree, CFEnvironment } from "cashfree-pg";
@@ -13,71 +13,71 @@ const cashfree = new Cashfree(
     CASHFREE_SECRET_KEY
 );
 
-const verifyPayment = async (req: Request, res: Response): Promise<Response> => {
+const verifyPayment = async (req: Request, res: Response): Promise<void> => {
     const { orderId } = req.body;
 
     if (!orderId) {
-        return res.status(400).json({ success: false, message: "Order ID missing" });
+        res.status(400).json({ success: false, message: "Order ID missing" });
     }
 
     try {
         const payment = await Payment.findOne({ transactionId: orderId });
         if (!payment) {
-            return res.status(404).json({ success: false, message: "Payment not found" });
+            res.status(404).json({ success: false, message: "Payment not found" });
         }
 
         // Already verified
-        if (payment.paymentStatus === "completed") {
-            return res.status(200).json({ success: true, message: "Payment already verified" });
+        if (payment?.paymentStatus === "completed") {
+            res.status(200).json({ success: true, message: "Payment already verified" });
         }
 
-        const userId = payment.user;
-        const busId: any = payment.bus;
-        const seats = payment.seatsBooked as number[];
+        const userId: any = payment?.user;
+        const busId: any = payment?.bus;
+        const seats = payment?.seatsBooked as number[];
 
         const bus = await Bus.findById(busId);
         const user = await User.findById(userId);
         if (!bus || !user) {
-            return res.status(404).json({ success: false, message: "User or Bus not found" });
+            res.status(404).json({ success: false, message: "User or Bus not found" });
         }
 
         // Check if these seats have already been booked for this payment
-        const alreadyBookedInBus = bus.bookedSeats.some(
-            s => s.paymentDetails?.toString() === payment._id?.toString()
+        const alreadyBookedInBus = bus?.bookedSeats.some(
+            s => s.paymentDetails?.toString() === payment?._id?.toString()
         );
 
-        const alreadyBookedInUser = user.bookedBus.some(
-            s => s.paymentDetails?.toString() === payment._id?.toString()
+        const alreadyBookedInUser = user?.bookedBus.some(
+            s => s.paymentDetails?.toString() === payment?._id?.toString()
         );
 
         if (!alreadyBookedInBus) {
             for (const seat of seats) {
-                const paymentDetails: any = payment._id
-                bus.bookedSeats.push({ seat, userId, paymentDetails });
+                const paymentDetails: any = payment?._id
+                bus?.bookedSeats.push({ seat, userId, paymentDetails });
             }
-            await bus.save();
+            await bus?.save();
         }
 
         if (!alreadyBookedInUser) {
             for (const seat of seats) {
-                const paymentDetails: any = payment._id
-                user.bookedBus.push({ busId, seat, paymentDetails });
+                const paymentDetails: any = payment?._id
+                user?.bookedBus.push({ busId, seat, paymentDetails });
             }
-            await user.save();
+            await user?.save();
         }
 
         const response = await cashfree.PGOrderFetchPayments(orderId);
         const paymentInfo = response.data?.[0];
         if (!paymentInfo) {
-            return res.status(404).json({ success: false, message: "Payment info not found" });
+            res.status(404).json({ success: false, message: "Payment info not found" });
         }
 
         if (paymentInfo.payment_status !== "SUCCESS") {
-            return res.json({ success: false, message: "Payment not successful" });
+            res.json({ success: false, message: "Payment not successful" });
         }
         // const paymentId = payment?._id
         if (!payment) {
-            return res.status(404).json({ success: false, message: "Payment record not found" });
+            res.status(404).json({ success: false, message: "Payment record not found" });
         }
 
         // const userId = payment.user;
@@ -107,14 +107,14 @@ const verifyPayment = async (req: Request, res: Response): Promise<Response> => 
         // await Promise.all([bus.save(), user.save()]);
 
         const paymethod: any = paymentInfo.payment_group
-        payment.paymentMethod = paymethod;
-        payment.paymentStatus = "completed";
-        await payment.save();
+        payment!.paymentMethod = PaymentMethod[paymethod as keyof typeof PaymentMethod]; // safest way
+        payment!.paymentStatus = PaymentStatus.Completed;
+        await payment?.save();
 
-        return res.json({ success: true, message: "Payment successful" });
+        res.json({ success: true, message: "Payment successful" });
     } catch (error: any) {
         console.error("Cashfree API error:", error.response?.data || error.message || error);
-        return res.status(500).json({ success: false, message: "Error verifying payment" });
+        res.status(500).json({ success: false, message: "Error verifying payment" });
     }
 };
 
