@@ -91,7 +91,7 @@ const loginUser = async (req: Request, res: Response) => {
 // fetching all the buses booked by a particular user
 const fetchBookedBus = async (req: AuthenticatedRequest, res: Response) => {
     try {
-        const userId = req.user._id;
+        const userId = req.user?._id;
         if (!userId) {
             return res.status(400).json({ message: "Please Login to view your booked buses", success: false })
         }

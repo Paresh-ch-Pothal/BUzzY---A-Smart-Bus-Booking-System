@@ -26,7 +26,6 @@ const MyBooking: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [isLoading, setIsLoading] = useState(true);
 
-
   const [authCookie, setAuthCookie, removeAuthCookie] = useCookies(["authtoken"])
 
   const token = authCookie.authtoken
@@ -40,6 +39,8 @@ const MyBooking: React.FC = () => {
           authtoken: token,
         },
       });
+      console.log(response)
+      // console.log(response.data.user.bookedBus.busId.SleeperPrice)
       if (response.data.success) {
         setBookings(response.data.user.bookedBus);
       }
@@ -256,7 +257,7 @@ const MyBooking: React.FC = () => {
                         <Ticket className="w-4 h-4 text-gray-500" />
                         <span className="text-sm text-gray-600">Seats:</span>
                         <span className="font-medium">
-                          {booking.paymentDetails.seatsBooked.map(seat => seat).join(", ")}
+                          {booking.seat}
                         </span>
                       </div>
                     </div>
@@ -269,7 +270,7 @@ const MyBooking: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <IndianRupee className="w-4 h-4 text-gray-500" />
                         <span className="text-sm text-gray-600">Total:</span>
-                        <span className="font-bold text-lg text-indigo-600">₹{booking.paymentDetails.amount}</span>
+                        <span className="font-bold text-lg text-indigo-600">₹{booking.seat > booking.busId.noOfSeater ? (booking.busId.SleeperPrice) : (booking.busId.SeaterPrice)}</span>
                       </div>
                     </div>
                   </div>
