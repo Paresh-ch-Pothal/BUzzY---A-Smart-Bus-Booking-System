@@ -1,9 +1,10 @@
+import React from 'react'
 import HomeSec1 from '../components/HomeSec1'
 import HomeSec2 from '../components/HomeSec2'
 import HomeSec3 from '../components/HomeSec3'
 import Sponsors from '../components/Sponsors'
 
-const Home = () => {
+const Home: React.FC = () => {
   return (
     <div>
       <HomeSec1/>
