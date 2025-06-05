@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-    origin: ['http://localhost:5173','http://localhost:5174','http'], // Allow these origins to make requests
+    origin: ['http://localhost:5173','http://localhost:5174','http','http://b-uzz-y-a-smart-bus-booking-system.vercel.app'], // Allow these origins to make requests
     methods: ["POST", "GET", "OPTIONS"], // Allow these HTTP methods
     credentials: true, // Allow cookies and other credentials to be sent
     allowedHeaders: ["Content-Type", "Authorization", "authtoken"], // Allow the token header
