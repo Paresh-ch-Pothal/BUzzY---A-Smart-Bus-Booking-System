@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { MapPin, Calendar, Clock, Users, Bed, Star, Filter, Search, X, Armchair } from 'lucide-react';
+import { MapPin, Calendar, Clock, Users, Bed, Filter, Search, X, Armchair } from 'lucide-react';
 import axios from 'axios';
 import { Bounce, toast, ToastContainer } from 'react-toastify';
 import { PiSteeringWheelFill } from "react-icons/pi";
@@ -38,7 +38,7 @@ interface SeatProps {
   seatType: any;
 }
 
-const Seat: React.FC<SeatProps> = ({ booked, selected, onClick, index, seatType }) => {
+const Seat: React.FC<SeatProps> = ({ booked, selected, onClick, seatType }) => {
   const isSeater = seatType === "seater";
 
   return (
@@ -112,7 +112,7 @@ const Buses = () => {
 
 
   // for getting booked seats and unbooked seats functionality
-  const [Loading, setLoading] = useState<boolean>(false);
+  // const [Loading, setLoading] = useState<boolean>(false);
 
   interface BusDetails {
     sleeperSeats: number;
@@ -174,8 +174,7 @@ const Buses = () => {
 
 
 
-  const handleSeatClick = (index: any, type: "seater" | "sleeper") => {
-    console.log(index)
+  const handleSeatClick = (index: any) => {
     if (selectedSeats.includes(index)) {
       setSelectedSeats(selectedSeats.filter((i: any) => i !== index));
     } else {
@@ -216,7 +215,7 @@ const Buses = () => {
     cashfree.checkout(checkoutOptions);
   };
 
-  const [authCookie, setAuthCookie, removeAuthCookie] = useCookies(["authtoken"])
+  const [authCookie] = useCookies(["authtoken"])
 
   const token = authCookie.authtoken
 
@@ -519,7 +518,7 @@ const Buses = () => {
                               key={seatIndex}
                               booked={getbusdetails.bookedSeaterSeats.includes(seatIndex)}
                               selected={selectedSeats.includes(seatIndex)}
-                              onClick={() => handleSeatClick(seatIndex, "seater")}
+                              onClick={() => handleSeatClick(seatIndex)}
                               index={seatIndex}
                               seatType="seater"
                             />
@@ -539,7 +538,7 @@ const Buses = () => {
                               key={seatIndex}
                               booked={getbusdetails.bookedSleeperSeats.includes(seatIndex)}
                               selected={selectedSeats.includes(seatIndex)}
-                              onClick={() => handleSeatClick(seatIndex, "sleeper")}
+                              onClick={() => handleSeatClick(seatIndex)}
                               index={seatIndex}
                               seatType="sleeper"
                             />

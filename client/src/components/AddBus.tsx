@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { BusFront, MapPin, Calendar, IndianRupee, Users, Settings, TimerIcon, Clock } from "lucide-react";
+import { BusFront, MapPin, Calendar, IndianRupee, Users, Settings, Clock } from "lucide-react";
 import axios from "axios";
 import { useCookies } from "react-cookie";
 import { Bounce, toast, ToastContainer } from "react-toastify";
@@ -50,7 +50,7 @@ const AddBus: React.FC = () => {
         });
     };
 
-    const [authCookie, setAuthCookie, removeAuthCookie] = useCookies(["authtoken"])
+    const [authCookie] = useCookies(["authtoken"])
 
     const token = authCookie.authtoken
 
