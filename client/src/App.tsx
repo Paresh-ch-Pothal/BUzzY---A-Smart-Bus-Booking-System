@@ -1,9 +1,8 @@
-import { useState } from 'react'
 import './App.css'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import Home from './Pages/Home'
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Buses from './components/Buses'
 import Contact from './components/Contact'
 import Signup from './components/Signup'
@@ -16,7 +15,7 @@ import PaymentCallback from './components/PaymentCallback'
 
 function App() {
 
-  const [userCookie,setUserCookie,removeUserCookie]=useCookies(["role"]);
+  const [userCookie]=useCookies(["role"]);
 
 
   return (

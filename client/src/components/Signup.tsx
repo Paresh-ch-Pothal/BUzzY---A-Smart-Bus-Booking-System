@@ -14,7 +14,7 @@ const Signup: React.FC = () => {
         role: ""
     });
 
-    const [cookies, setCookie, removeCookie] = useCookies(["authtoken", "name", "role"]);
+    const [_, setCookie, ] = useCookies(["authtoken", "name", "role"]);
 
 
     const host = import.meta.env.VITE_API_BASE_URL;
