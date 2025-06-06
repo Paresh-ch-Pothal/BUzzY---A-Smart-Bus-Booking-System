@@ -45,7 +45,7 @@ const MyBooking: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [isLoading, setIsLoading] = useState(true);
 
-  const [authCookie] = useCookies(["authtoken"])
+  const [authCookie,,] = useCookies(["authtoken"])
 
   const token = authCookie.authtoken
 

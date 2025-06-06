@@ -9,9 +9,9 @@ const Navbar: React.FC = () => {
 
   const toggleMenu = (): void => setMenuOpen(!menuOpen);
 
-  const [cookies, removeCookie] = useCookies(['authtoken'])
-  const [userCookie,  removeUserCookie] = useCookies(["role"]);
-  const [_,  removeNameCookie] = useCookies(["name"]);
+  const [cookies, , removeCookie] = useCookies(['authtoken']);
+  const [userCookie, , removeUserCookie] = useCookies(['role']);
+  const [, , removeNameCookie] = useCookies(['name']);
   console.log(userCookie.role)
   let token: boolean;
   if (cookies.authtoken) {

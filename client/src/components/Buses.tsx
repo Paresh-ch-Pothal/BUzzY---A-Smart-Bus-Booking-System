@@ -215,7 +215,7 @@ const Buses = () => {
     cashfree.checkout(checkoutOptions);
   };
 
-  const [authCookie] = useCookies(["authtoken"])
+  const [authCookie, ,] = useCookies(["authtoken"])
 
   const token = authCookie.authtoken
 

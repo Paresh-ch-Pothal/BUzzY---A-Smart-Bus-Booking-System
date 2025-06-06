@@ -204,7 +204,7 @@ const PaymentCallback = () => {
     const [searchParams] = useSearchParams();
     const orderId = searchParams.get('order_id');
     const host = import.meta.env.VITE_API_BASE_URL;
-    const [authCookie] = useCookies(["authtoken"]);
+    const [authCookie,,] = useCookies(["authtoken"]);
     const token = authCookie.authtoken;
 
     const hasVerified = useRef(false); // 🚫 Avoid multiple verifications
