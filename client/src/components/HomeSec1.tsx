@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const HomeSec1: React.FC = () => {
   return (
@@ -13,9 +14,10 @@ const HomeSec1: React.FC = () => {
             <p className="text-lg md:text-xl drop-shadow-sm">
               Book comfortable and reliable buses across the country. Affordable, fast, and safe travel.
             </p>
-            <button className="bg-white text-blue-600 hover:bg-blue-100 font-semibold px-6 py-3 rounded-lg text-lg transition shadow-lg">
+            <Link to='/buses'>
+            <button className="bg-white cursor-pointer text-blue-600 hover:bg-blue-100 font-semibold px-6 py-3 rounded-lg text-lg transition shadow-lg">
               Book Now
-            </button>
+            </button></Link>
           </div>
 
           {/* Right: Bus Images */}

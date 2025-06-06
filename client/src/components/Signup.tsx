@@ -1,5 +1,5 @@
 import axios from "axios";
-import React from "react";
+import React, { useState } from "react";
 import { FaGoogle, FaFacebookF, FaGithub } from "react-icons/fa";
 import { Bounce, toast, ToastContainer } from "react-toastify";
 import { Link, useNavigate } from "react-router-dom";
@@ -15,6 +15,7 @@ const Signup: React.FC = () => {
     });
 
     const [_, setCookie, ] = useCookies(["authtoken", "name", "role"]);
+    const [loading, setLoading] = useState<Boolean>(false);
 
 
     const host = import.meta.env.VITE_API_BASE_URL;
@@ -28,6 +29,7 @@ const Signup: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         try {
             e.preventDefault();
+            setLoading(true)
             const response = await axios.post(`${host}/api/user/signup`, {
                 name: user.name,
                 email: user.email,
@@ -36,6 +38,7 @@ const Signup: React.FC = () => {
             })
             console.log(response.data)
             if (response.data.success == true) {
+                setLoading(false)
                 setCookie("authtoken", response.data.token, {
                     path: "/",
                     maxAge: 7 * 24 * 60 * 60,
@@ -79,6 +82,7 @@ const Signup: React.FC = () => {
                 });
             }
         } catch (error: any) {
+            setLoading(false)
             console.log(error);
             const errorMessage = error.response?.data?.message
             toast.error(errorMessage, {
@@ -141,7 +145,24 @@ const Signup: React.FC = () => {
                         </select>
                     </div>
                     <button className="w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all">
-                        Sign Up
+                        {loading ? (<div className="flex items-center justify-center space-x-2 text-sm text-white font-medium animate-pulse">
+                            <svg className="w-5 h-5 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                                <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                />
+                                <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8v8H4z"
+                                />
+                            </svg>
+                            <span>Please wait...</span>
+                        </div>) : (<span>Sign Up</span>)}
                     </button>
                 </form>
 

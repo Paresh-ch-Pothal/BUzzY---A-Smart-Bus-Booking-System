@@ -3,6 +3,7 @@ import { BusFront, MapPin, Calendar, IndianRupee, Users, Settings, Clock } from 
 import axios from "axios";
 import { useCookies } from "react-cookie";
 import { Bounce, toast, ToastContainer } from "react-toastify";
+import { Link } from "react-router-dom";
 
 interface AddBusForm {
     name: string;
@@ -50,7 +51,7 @@ const AddBus: React.FC = () => {
         });
     };
 
-    const [authCookie,,] = useCookies(["authtoken"])
+    const [authCookie, ,] = useCookies(["authtoken"])
 
     const token = authCookie.authtoken
 
@@ -296,8 +297,8 @@ const AddBus: React.FC = () => {
                             onClick={handleSubmit}
                             disabled={isSubmitting}
                             className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-300 ${isSubmitting
-                                    ? "bg-gray-400 cursor-not-allowed"
-                                    : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transform hover:scale-[1.02] shadow-lg hover:shadow-xl"
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transform hover:scale-[1.02] shadow-lg hover:shadow-xl"
                                 } text-white`}
                         >
                             {isSubmitting ? "Adding Bus..." : "Add Bus"}

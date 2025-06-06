@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import { useCookies } from "react-cookie";
+import { Link } from "react-router-dom";
 
 interface Bus {
     _id: string;
@@ -333,7 +334,7 @@ const ShowAddedBus: React.FC = () => {
                         {/* Add Bus Button */}
                         <button className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl transition-all duration-200 font-medium">
                             <Plus className="w-5 h-5" />
-                            Add New Bus
+                            <Link to='/addBus'>Add New Bus</Link>
                         </button>
                     </div>
                 </div>

@@ -44,10 +44,10 @@ const Seat: React.FC<SeatProps> = ({ booked, selected, onClick, seatType }) => {
   return (
     <div
       className={`w-10 h-8 m-1 rounded-lg border-2 cursor-pointer transition-all duration-200 flex items-center justify-center text-xs font-semibold hover:scale-110 ${booked
-          ? "bg-red-100 border-red-300 text-red-600 cursor-not-allowed"
-          : selected
-            ? "bg-green-500 border-green-600 text-white shadow-lg"
-            : "bg-white border-gray-300 text-gray-600 hover:border-purple-400 hover:bg-purple-50"
+        ? "bg-red-100 border-red-300 text-red-600 cursor-not-allowed"
+        : selected
+          ? "bg-green-500 border-green-600 text-white shadow-lg"
+          : "bg-white border-gray-300 text-gray-600 hover:border-purple-400 hover:bg-purple-50"
         }`}
       onClick={!booked ? onClick : undefined}
     >
@@ -60,6 +60,8 @@ const Buses = () => {
   const [openBus, setOpenBus] = useState(false);
   const [selectedSeats, setSelectedSeats] = useState<any>([]);
   const [showFilters, setShowFilters] = useState(false);
+
+  const [searching, setSearching] = useState<Boolean>(false)
 
   // const handleSeatClick = (seatIndex) => {
   //   setSelectedSeats(prev => 
@@ -85,15 +87,18 @@ const Buses = () => {
 
   const getSearchBus = async () => {
     try {
+      setSearching(true)
       const response = await axios.post(`${host}/api/bus/searchBus`, {
         source: searchBus.source,
         destination: searchBus.destination,
         startDate: searchBus.startDate
       });
       if (response.data.success) {
+        setSearching(false)
         setBuses(response.data.buses);
       }
     } catch (error: any) {
+      setSearching(false)
       console.log(error);
       const errorMessage = error.response?.data?.message
       toast.error(errorMessage, {
@@ -317,7 +322,24 @@ const Buses = () => {
             </div>
             <button onClick={getSearchBus} className="bg-gradient-to-r from-blue-500 to-green-500 text-white py-4 px-6 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2">
               <Search size={20} />
-              Search Buses
+              {searching ? (<div className="flex items-center justify-center space-x-2 text-sm text-white font-medium animate-pulse">
+                <svg className="w-5 h-5 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"
+                  />
+                </svg>
+                <span>Searching for buses...</span>
+              </div>) : (<span>Search Buses</span>)}
             </button>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { FaFacebookF, FaTwitter, FaLinkedinIn, FaGithub, FaBusAlt, FaEnvelope } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 const Footer: React.FC = () => {
   return (
@@ -21,10 +22,10 @@ const Footer: React.FC = () => {
         <div>
           <h4 className="text-lg font-semibold text-white mb-4">Quick Links</h4>
           <ul className="space-y-2 text-sm">
-            <li><a href="/" className="hover:text-yellow-400 transition">Home</a></li>
-            <li><a href="/routes" className="hover:text-yellow-400 transition">Routes</a></li>
-            <li><a href="/bookings" className="hover:text-yellow-400 transition">My Bookings</a></li>
-            <li><a href="/contact" className="hover:text-yellow-400 transition">Contact Us</a></li>
+            <li><Link to="/" className="hover:text-yellow-400 transition">Home</Link></li>
+            <li><Link to="/buses" className="hover:text-yellow-400 transition">Buses</Link></li>
+            <li><Link to="/mybookings" className="hover:text-yellow-400 transition">My Bookings</Link></li>
+            <li><Link to="/contact" className="hover:text-yellow-400 transition">Contact Us</Link></li>
           </ul>
         </div>
 
@@ -32,7 +33,7 @@ const Footer: React.FC = () => {
         <div>
           <h4 className="text-lg font-semibold text-white mb-4">Connect With Us</h4>
           <div className="flex space-x-4 mb-4">
-            <a href="mailto:help@gobus.com" className="text-gray-400 hover:text-yellow-400">
+            <a href="#" className="text-gray-400 hover:text-yellow-400">
               <FaEnvelope size={18} />
             </a>
             <a href="#" className="text-gray-400 hover:text-yellow-400">
@@ -48,7 +49,7 @@ const Footer: React.FC = () => {
               <FaFacebookF size={18} />
             </a>
           </div>
-          <p className="text-sm text-gray-500">Email: help@gobus.com</p>
+          <p className="text-sm text-gray-500">Email: xxxxxxxxx@gmail.com</p>
         </div>
       </div>
 

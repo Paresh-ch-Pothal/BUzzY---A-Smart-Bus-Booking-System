@@ -44,7 +44,7 @@ const Contact: React.FC = () => {
                 <FaPhoneAlt className="mr-2 text-green-500" /> +91 98XXX XXXXX
               </p>
               <p className="flex items-center mb-3 text-gray-600">
-                <FaEnvelope className="mr-2 text-blue-500" /> support@busbooking.com
+                <FaEnvelope className="mr-2 text-blue-500" /> supportxxxxxxx@gmail.com
               </p>
               <p className="flex items-center text-gray-600">
                 <FaMapMarkerAlt className="mr-2 text-red-500" /> Address,India
