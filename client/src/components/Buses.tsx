@@ -449,7 +449,7 @@ const Buses = () => {
                   <div className="text-center lg:text-right">
                     <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent mb-2">
                       {bus.SeaterPrice == 0 ? bus.SleeperPrice : bus.SleeperPrice == 0 ?
-                        bus.SeaterPrice : bus.SeaterPrice | bus.SleeperPrice}
+                        bus.SeaterPrice : bus.SeaterPrice || bus.SleeperPrice}
                     </p>
                     <button onClick={() => { getBusDetails(bus._id) }} className="cursor-pointer bg-gradient-to-r from-blue-500 to-green-500 text-white px-6 py-2 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2 mx-auto lg:mx-0">
                       <Users size={16} />

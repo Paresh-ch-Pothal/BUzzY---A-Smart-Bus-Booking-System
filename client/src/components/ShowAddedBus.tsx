@@ -36,12 +36,14 @@ interface Bus {
     totalBookings: number;
     revenue: number;
     occupancyRate: number;
+    arrivalDate: string;
+    departureDate: string;
 }
 
 const ShowAddedBus: React.FC = () => {
     const [buses, setBuses] = useState<Bus[]>([]);
-    const [totalSeat,setTotalseat] = useState<number>(0);
-    const [totalAmount,setTotalAmount] = useState<number>(0);
+    const [totalSeat, setTotalseat] = useState<number>(0);
+    const [totalAmount, setTotalAmount] = useState<number>(0);
     // const [filteredBuses, setFilteredBuses] = useState<Bus[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState<string>("All");
@@ -50,7 +52,7 @@ const ShowAddedBus: React.FC = () => {
 
     // Mock data - replace with actual API call
     const host = import.meta.env.VITE_API_BASE_URL;
-    const [authCookie,,] = useCookies(["authtoken"])
+    const [authCookie, ,] = useCookies(["authtoken"])
     const token = authCookie.authtoken
 
     const getBuses = async () => {
@@ -74,7 +76,7 @@ const ShowAddedBus: React.FC = () => {
     }
 
 
-    const getTotalSeats = async()=>{
+    const getTotalSeats = async () => {
         try {
             const response = await axios.get(`${host}/api/user/showAddedBus`, {
                 headers: {
@@ -87,17 +89,17 @@ const ShowAddedBus: React.FC = () => {
                 const buses = response.data.user.addedBus
                 let co = 0;
                 let aco = 0;
-                buses.forEach((e : any) => {
+                buses.forEach((e: any) => {
                     co += e.bookedSeats.length
-                    if (e.noOfSleeper == 0){
+                    if (e.noOfSleeper == 0) {
                         aco = aco + e.SeaterPrice * e.bookedSeats.length
                     }
-                    else{
+                    else {
                         e.bookedSeats.forEach((ele: any) => {
-                            if (ele.seat > e.noOfSeater){
+                            if (ele.seat > e.noOfSeater) {
                                 aco = aco + e.SleeperPrice
                             }
-                            else{
+                            else {
                                 aco = aco + e.SeaterPrice
                             }
                         });
@@ -122,7 +124,7 @@ const ShowAddedBus: React.FC = () => {
     //             }
     //         })
     //     } catch (error) {
-            
+
     //     }
     // }
 
@@ -162,7 +164,7 @@ const ShowAddedBus: React.FC = () => {
                 return <CheckCircle className="w-5 h-5 text-green-500" />;
             case "Inactive":
                 return <XCircle className="w-5 h-5 text-red-500" />;
-            case "Maintenance":
+            case "Not Started":
                 return <AlertCircle className="w-5 h-5 text-yellow-500" />;
             default:
                 return <AlertCircle className="w-5 h-5 text-gray-500" />;
@@ -175,12 +177,16 @@ const ShowAddedBus: React.FC = () => {
                 return "bg-green-100 text-green-800 border-green-200";
             case "Inactive":
                 return "bg-red-100 text-red-800 border-red-200";
-            case "Maintenance":
+            case "Not Started":
                 return "bg-yellow-100 text-yellow-800 border-yellow-200";
             default:
                 return "bg-gray-100 text-gray-800 border-gray-200";
         }
     };
+
+
+
+
 
     // const getOccupancyColor = (rate: number) => {
     //     if (rate >= 80) return "text-green-600 bg-green-100";
@@ -381,10 +387,54 @@ const ShowAddedBus: React.FC = () => {
                                                 )}
                                             </div>
                                         </div>
-                                        <div className={`px-3 py-1 rounded-full border text-sm font-medium flex items-center gap-2 ${getStatusColor("Active")} bg-white bg-opacity-20 backdrop-blur-sm`}>
-                                            {getStatusIcon("Active")}
-                                            {"Active"}
+                                        <div
+                                            className={`px-3 py-1 rounded-full border text-sm font-medium flex items-center gap-2 ${getStatusColor(
+                                                (() => {
+                                                    const now = new Date();
+                                                    const departure = new Date(
+                                                        `${new Date(bus.departureDate).toISOString().split("T")[0]}T${bus.departureTime}:00Z`
+                                                    );
+                                                    const arrival = new Date(
+                                                        `${new Date(bus.arrivalDate).toISOString().split("T")[0]}T${bus.arrivalTime}:00Z`
+                                                    );
+
+                                                    if (departure > now) return "Not Started";
+                                                    if (now >= departure && now <= arrival) return "Active";
+                                                    return "Inactive";
+                                                })()
+                                            )
+                                                } bg-white bg-opacity-20 backdrop-blur-sm`}
+                                        >
+                                            {getStatusIcon(
+                                                (() => {
+                                                    const now = new Date();
+                                                    const departure = new Date(
+                                                        `${new Date(bus.departureDate).toISOString().split("T")[0]}T${bus.departureTime}:00Z`
+                                                    );
+                                                    const arrival = new Date(
+                                                        `${new Date(bus.arrivalDate).toISOString().split("T")[0]}T${bus.arrivalTime}:00Z`
+                                                    );
+
+                                                    if (departure > now) return "Not Started";
+                                                    if (now >= departure && now <= arrival) return "Active";
+                                                    return "Inactive";
+                                                })()
+                                            )}
+                                            {(() => {
+                                                const now = new Date();
+                                                const departure = new Date(
+                                                    `${new Date(bus.departureDate).toISOString().split("T")[0]}T${bus.departureTime}:00Z`
+                                                );
+                                                const arrival = new Date(
+                                                    `${new Date(bus.arrivalDate).toISOString().split("T")[0]}T${bus.arrivalTime}:00Z`
+                                                );
+
+                                                if (departure > now) return "Not Started";
+                                                if (now >= departure && now <= arrival) return "Active";
+                                                return "Inactive";
+                                            })()}
                                         </div>
+
                                     </div>
 
                                     {/* Route */}
